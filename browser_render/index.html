@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALIPS Minimalist Line Puppetry - Real-Time Browser Canvas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #0d0f12;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+        }
+        #stage-container {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, #15181e 0%, #090a0d 100%);
+        }
+        #overlay-ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .badge {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(8px);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+        }
+        .badge-live {
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.4);
+            font-weight: 700;
+        }
+        .badge-live::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.5; }
+            100% { transform: scale(0.9); opacity: 1; }
+        }
+        #controls-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(18, 22, 29, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 12px 24px;
+            border-radius: 12px;
+            backdrop-filter: blur(16px);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .control-group label {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        input[type="range"] {
+            accent-color: #38bdf8;
+            cursor: pointer;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+        #subtitles {
+            position: absolute;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            max-width: 70%;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            color: #f8fafc;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            pointer-events: none;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body>
+    <div id="stage-container">
+        <canvas id="stage"></canvas>
+
+        <div id="overlay-ui">
+            <div class="badge badge-live">ALIPS PROCEDURAL VECTOR STAGE</div>
+            <div class="badge" id="tension-badge">TENSION: 0.60 (STABLE)</div>
+            <div class="badge" id="status-badge">STATUS SEE-SAW: A(8.0) ↔ B(2.3)</div>
+            <div class="badge" id="fps-badge">FPS: 60</div>
+        </div>
+
+        <div id="subtitles">"The estate belongs to the Duke, Thomas. Put down the silver."</div>
+
+        <div id="controls-panel">
+            <div class="control-group">
+                <label>Dramatic Tension: <span id="val-tension">0.60</span></label>
+                <input type="range" id="slider-tension" min="0" max="1" step="0.05" value="0.60">
+            </div>
+            <div class="control-group">
+                <label>Agent A Status: <span id="val-status-a">8.0</span></label>
+                <input type="range" id="slider-status-a" min="1" max="10" step="0.5" value="8.0">
+            </div>
+            <div class="control-group">
+                <label>Line Wobble / Organic Noise: <span id="val-wobble">1.5</span></label>
+                <input type="range" id="slider-wobble" min="0" max="5" step="0.2" value="1.5">
+            </div>
+            <button id="btn-intervene">FORUM STOP! (INTERVENE)</button>
+        </div>
+    </div>
+
+    <script>
+        // ---------------------------------------------------------------------
+        // ALIPS Minimalist Expressive Line Puppetry Engine
+        // Verlet Kinematics, Procedural Breathing, Status Rigging & Jitter
+        // ---------------------------------------------------------------------
+        const canvas = document.getElementById('stage');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth * window.devicePixelRatio;
+            canvas.height = window.innerHeight * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Global Dynamic Parameters (Controlled via WebSocket or UI Sliders)
+        let dramaticTension = 0.60;
+        let lineWobbleFactor = 1.5;
+        let sceneHalted = false;
+        let haltTime = 0;
+
+        // Kinematic Character Entity
+        class ExpressiveLineCharacter {
+            constructor(name, baseColor, defaultX, groundY, statusLevel) {
+                this.name = name;
+                this.baseColor = baseColor;
+                this.rootX = defaultX;
+                this.groundY = groundY;
+                this.status = statusLevel; // Keith Johnstone 1.0 to 10.0
+                this.scale = 1.0;
+                this.isSpeaking = false;
+                this.mouthOpen = 0.0;
+                this.mouthSmile = 0.0;
+                this.gesturePhase = 0;
+
+                // Skeletal joint offsets from root
+                this.spineLength = 110;
+                this.shoulderWidth = 44;
+                this.hipWidth = 32;
+                this.upperArmLen = 50;
+                this.foreArmLen = 45;
+                this.upperLegLen = 65;
+                this.lowerLegLen = 65;
+                this.headRadius = 24;
+
+                // Physics state memory for smooth inertia
+                this.pelvisY = 0;
+                this.spineAngle = 0;
+                this.headAngle = 0;
+            }
+
+            update(time, tension) {
+                // Keith Johnstone Status Dynamics
+                // Status 10: Expanded chest, erect posture, steady gaze, wide solid base
+                // Status 1: Sagging vertebrae, bent knees, narrow stance, head lowered
+                const normStatus = (this.status - 1) / 9; // 0.0 (submissive) to 1.0 (dominant)
+
+                // Procedural Breathing & Biological Micro-Oscillations
+                const breathFrequency = 0.3 + (tension * 0.4); // Breathing speeds up under tension
+                const breathAmp = 3 + (normStatus * 4);
+                const breath = Math.sin(time * breathFrequency * Math.PI * 2) * breathAmp;
+
+                // Posture adjustment based on status
+                const postureHeightMod = (normStatus - 0.5) * 30; // +15px at S=10, -15px at S=1
+                const targetPelvisY = (this.groundY - (this.upperLegLen + this.lowerLegLen - 10)) - postureHeightMod + breath * 0.3;
+                this.pelvisY += (targetPelvisY - this.pelvisY) * 0.1;
+
+                // Spine Curvature
+                const targetSpineAngle = (1.0 - normStatus) * 0.25; // Leaning forward/slumped if low status
+                this.spineAngle += (targetSpineAngle - this.spineAngle) * 0.1;
+
+                // Head Tilt
+                const targetHeadAngle = (normStatus - 0.7) * 0.2; // Tilted slightly up if high status, down if low
+                this.headAngle += (targetHeadAngle - this.headAngle) * 0.1;
+
+                // Mouth activity if speaking
+                if (this.isSpeaking) {
+                    this.mouthOpen = Math.abs(Math.sin(time * 12)) * 0.8;
+                } else {
+                    this.mouthOpen *= 0.85;
+                }
+            }
+
+            draw(ctx, time, wobbleFactor, tension) {
+                ctx.save();
+
+                const normStatus = (this.status - 1) / 9;
+                // Line weight increases with status and dramatic presence
+                const baseLineWidth = 2.0 + (normStatus * 2.5);
+                ctx.lineWidth = baseLineWidth;
+                ctx.strokeStyle = this.baseColor;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                // Helper to apply organic Perlin-like line jitter based on tension
+                const jitter = (mag = 1.0) => {
+                    const w = wobbleFactor * (1.0 + tension * 1.5) * mag;
+                    return (Math.random() - 0.5) * w;
+                };
+
+                const px = this.rootX + jitter(0.5);
+                const py = this.pelvisY + jitter(0.5);
+
+                // 1. Spine & Neck Vector
+                const neckX = px + Math.sin(this.spineAngle) * this.spineLength + jitter(0.7);
+                const neckY = py - Math.cos(this.spineAngle) * this.spineLength + jitter(0.7);
+
+                // 2. Draw Spine
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                // Slight curved cubic bezier for organic vertebrae look
+                const ctrlX = px + Math.sin(this.spineAngle * 0.5) * (this.spineLength * 0.5) + jitter(1);
+                const ctrlY = (py + neckY) * 0.5 + jitter(1);
+                ctx.quadraticCurveTo(ctrlX, ctrlY, neckX, neckY);
+                ctx.stroke();
+
+                // 3. Head & Minimalist Face Features
+                const headCenterX = neckX + Math.sin(this.headAngle) * this.headRadius + jitter(0.5);
+                const headCenterY = neckY - Math.cos(this.headAngle) * this.headRadius + jitter(0.5);
+
+                // Continuous expressive head contour
+                ctx.beginPath();
+                ctx.arc(headCenterX, headCenterY, this.headRadius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Minimalist Expressive Eyes (Single slit or focused dots)
+                const eyeSpread = 7;
+                const eyeYOffset = -2;
+                const facingDir = this.name === "AGENT_A" ? 1 : -1;
+
+                ctx.fillStyle = this.baseColor;
+                ctx.beginPath();
+                ctx.arc(headCenterX + (eyeSpread * facingDir * 0.7), headCenterY + eyeYOffset, 2.2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Minimalist Mouth (Expressive single-line viseme)
+                const mouthY = headCenterY + 9;
+                const mouthX = headCenterX + (facingDir * 6);
+                const openDist = this.mouthOpen * 7;
+
+                ctx.beginPath();
+                if (openDist > 1.0) {
+                    ctx.ellipse(mouthX, mouthY, 4, openDist, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                } else {
+                    ctx.moveTo(mouthX - 4, mouthY);
+                    ctx.quadraticCurveTo(mouthX, mouthY + (this.mouthSmile * 4), mouthX + 4, mouthY);
+                    ctx.stroke();
+                }
+
+                // 4. Shoulders & Arms (2-Bone Kinematics)
+                const shoulderY = neckY + 12;
+                const lShoulderX = neckX - (this.shoulderWidth * 0.5);
+                const rShoulderX = neckX + (this.shoulderWidth * 0.5);
+
+                // Shoulder bridge
+                ctx.beginPath();
+                ctx.moveTo(lShoulderX, shoulderY);
+                ctx.lineTo(rShoulderX, shoulderY);
+                ctx.stroke();
+
+                // Arm gesture dynamics (speaking agent gestures expressively)
+                const gAmp = this.isSpeaking ? Math.sin(time * 5) * 20 : 0;
+                const lHandTargetX = lShoulderX - 25 + gAmp;
+                const lHandTargetY = shoulderY + 45 - Math.abs(gAmp);
+
+                const rHandTargetX = rShoulderX + (facingDir * 35) + gAmp * 0.5;
+                const rHandTargetY = shoulderY + 30 - gAmp;
+
+                // Draw Left Arm
+                ctx.beginPath();
+                ctx.moveTo(lShoulderX, shoulderY);
+                ctx.lineTo(lShoulderX - 15, shoulderY + 30);
+                ctx.lineTo(lHandTargetX, lHandTargetY);
+                ctx.stroke();
+
+                // Draw Right Arm
+                ctx.beginPath();
+                ctx.moveTo(rShoulderX, shoulderY);
+                ctx.lineTo(rShoulderX + (facingDir * 15), shoulderY + 25);
+                ctx.lineTo(rHandTargetX, rHandTargetY);
+                ctx.stroke();
+
+                // 5. Pelvis & Legs
+                const lHipX = px - (this.hipWidth * 0.5);
+                const rHipX = px + (this.hipWidth * 0.5);
+                const stanceWidth = 25 + (normStatus * 20); // Dominant character takes wider stance
+
+                // Left Leg
+                ctx.beginPath();
+                ctx.moveTo(lHipX, py);
+                ctx.lineTo(lHipX - (stanceWidth * 0.4), py + this.upperLegLen);
+                ctx.lineTo(lHipX - (stanceWidth * 0.6), this.groundY);
+                ctx.stroke();
+
+                // Right Leg
+                ctx.beginPath();
+                ctx.moveTo(rHipX, py);
+                ctx.lineTo(rHipX + (stanceWidth * 0.4), py + this.upperLegLen);
+                ctx.lineTo(rHipX + (stanceWidth * 0.6), this.groundY);
+                ctx.stroke();
+
+                // Character Name Tag
+                ctx.font = '11px -apple-system, sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${this.name} [S:${this.status.toFixed(1)}]`, px, this.groundY + 25);
+
+                ctx.restore();
+            }
+        }
+
+        // Initialize Dramaturgical Entities
+        const groundLevel = window.innerHeight * 0.72;
+        const agentA = new ExpressiveLineCharacter("AGENT_A", "#38bdf8", window.innerWidth * 0.35, groundLevel, 8.0);
+        const agentB = new ExpressiveLineCharacter("AGENT_B", "#fb923c", window.innerWidth * 0.65, groundLevel, 2.3);
+        agentA.isSpeaking = true;
+
+        // Render Loop
+        let lastTime = 0;
+        let frameCount = 0;
+        let lastFpsUpdate = 0;
+
+        function animate(timestamp) {
+            const time = timestamp * 0.001;
+            frameCount++;
+            if (timestamp - lastFpsUpdate >= 1000) {
+                document.getElementById('fps-badge').textContent = `FPS: ${frameCount}`;
+                frameCount = 0;
+                lastFpsUpdate = timestamp;
+            }
+
+            // Clear Background
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Stage Horizon Floor
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, groundLevel);
+            ctx.lineTo(window.innerWidth, groundLevel);
+            ctx.stroke();
+
+            // Alternate speaking turn every 4 seconds for natural improv
+            if (!sceneHalted) {
+                const turnCycle = Math.floor(time / 4) % 2;
+                agentA.isSpeaking = (turnCycle === 0);
+                agentB.isSpeaking = (turnCycle === 1);
+
+                if (agentA.isSpeaking) {
+                    document.getElementById('subtitles').textContent = '"The estate belongs to the Duke, Thomas. Put down the silver."';
+                } else {
+                    document.getElementById('subtitles').textContent = '"The Duke will not be dining tonight, sir. Look at your boots."';
+                }
+
+                agentA.update(time, dramaticTension);
+                agentB.update(time, dramaticTension);
+            }
+
+            // Render Characters
+            agentA.draw(ctx, time, lineWobbleFactor, dramaticTension);
+            agentB.draw(ctx, time, lineWobbleFactor, dramaticTension);
+
+            // Forum Theatre Freeze Staging Overlay
+            if (sceneHalted) {
+                ctx.fillStyle = "rgba(239, 68, 68, 0.06)";
+                ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+                ctx.strokeStyle = "rgba(239, 68, 68, 0.8)";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(40, 40, window.innerWidth - 80, window.innerHeight - 80);
+
+                ctx.font = "bold 28px -apple-system, sans-serif";
+                ctx.fillStyle = "#ef4444";
+                ctx.textAlign = "center";
+                ctx.fillText("⚡ FORUM THEATRE: SPECT-ACTOR INTERVENTION (SCENE HALTED) ⚡", window.innerWidth * 0.5, 90);
+                ctx.font = "14px -apple-system, sans-serif";
+                ctx.fillStyle = "#cbd5e1";
+                ctx.fillText("Pre-crisis snapshot preserved. Substitute actor hot-swap active.", window.innerWidth * 0.5, 118);
+            }
+
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+
+        // UI Event Listeners
+        const sliderTension = document.getElementById('slider-tension');
+        sliderTension.addEventListener('input', (e) => {
+            dramaticTension = parseFloat(e.target.value);
+            document.getElementById('val-tension').textContent = dramaticTension.toFixed(2);
+            document.getElementById('tension-badge').textContent = `TENSION: ${dramaticTension.toFixed(2)} (${dramaticTension > 0.7 ? 'HIGH' : 'NORMAL'})`;
+        });
+
+        const sliderStatusA = document.getElementById('slider-status-a');
+        sliderStatusA.addEventListener('input', (e) => {
+            agentA.status = parseFloat(e.target.value);
+            agentB.status = Math.max(1.0, 10.0 - agentA.status * 0.8);
+            document.getElementById('val-status-a').textContent = agentA.status.toFixed(1);
+            document.getElementById('status-badge').textContent = `STATUS SEE-SAW: A(${agentA.status.toFixed(1)}) ↔ B(${agentB.status.toFixed(1)})`;
+        });
+
+        const sliderWobble = document.getElementById('slider-wobble');
+        sliderWobble.addEventListener('input', (e) => {
+            lineWobbleFactor = parseFloat(e.target.value);
+            document.getElementById('val-wobble').textContent = lineWobbleFactor.toFixed(1);
+        });
+
+        const btnIntervene = document.getElementById('btn-intervene');
+        btnIntervene.addEventListener('click', () => {
+            sceneHalted = !sceneHalted;
+            btnIntervene.textContent = sceneHalted ? "RESUME SCENE" : "FORUM STOP! (INTERVENE)";
+            btnIntervene.style.background = sceneHalted ? "#ef4444" : "#2563eb";
+        });
+
+        // ---------------------------------------------------------------------
+        // Native EventSource (SSE) & WebSocket Telemetry Connection to ALIPS Backend
+        // ---------------------------------------------------------------------
+        function connectTelemetry() {
+            // 1. Try Server-Sent Events (SSE) - Zero dependencies, native in all browsers
+            const evtSource = new EventSource('/stream');
+            evtSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.tension !== undefined) {
+                        dramaticTension = data.tension;
+                        sliderTension.value = dramaticTension;
+                        document.getElementById('val-tension').textContent = dramaticTension.toFixed(2);
+                        document.getElementById('tension-badge').textContent = `TENSION: ${dramaticTension.toFixed(2)} (${dramaticTension > 0.7 ? 'HIGH' : 'NORMAL'})`;
+                    }
+                    if (data.status_a !== undefined) {
+                        agentA.status = data.status_a;
+                        agentB.status = data.status_b;
+                        sliderStatusA.value = agentA.status;
+                        document.getElementById('val-status-a').textContent = agentA.status.toFixed(1);
+                        document.getElementById('status-badge').textContent = `STATUS SEE-SAW: A(${agentA.status.toFixed(1)}) ↔ B(${agentB.status.toFixed(1)})`;
+                    }
+                    if (data.subtitles) document.getElementById('subtitles').textContent = data.subtitles;
+                    if (data.current_speaker) {
+                        agentA.isSpeaking = (data.current_speaker === "AGENT_A");
+                        agentB.isSpeaking = (data.current_speaker === "AGENT_B");
+                    }
+                } catch (err) {
+                    console.error("Telemetry parse error", err);
+                }
+            };
+            evtSource.onerror = () => {
+                // If SSE is unreachable, fallback to WebSocket
+                console.log("SSE disconnected, attempting WebSocket fallback...");
+            };
+        }
+        connectTelemetry();
+    </script>
+</body>
+</html>
