@@ -1983,28 +1983,28 @@
                     {
                         id: currentBeatId + 1,
                         speaker: "A",
-                        dialogue: `Hold on a second. Did you just say '${cleanWord}'?! Vincent, look at me. Did this boy just bring up '${cleanWord}'?!`,
-                        statusA: 9.4, statusB: 2.0, tension: 0.88, targetA: 0.52, targetB: 0.70,
+                        dialogue: `You think Marcellus Wallace didn't know about '${cleanWord}'?! Brett, look at me! You think my boss sent his most loyal shepherd across town just to let '${cleanWord}' slip out of this room?!`,
+                        statusA: 9.6, statusB: 2.0, tension: 0.88, targetA: 0.52, targetB: 0.70,
                         gestureA: "DRAW_PISTOL", gestureB: "FLINCH_TERROR",
-                        camZoom: 1.7, camLabel: "IMPROV TILT: " + cleanWord.slice(0, 14).toUpperCase(),
+                        camZoom: 1.7, camLabel: "CONFRONTATION: " + cleanWord.slice(0, 14).toUpperCase(),
                         shake: 0.5, improvised: true
                     },
                     {
                         id: currentBeatId + 2,
                         speaker: "B",
-                        dialogue: `Jules, I swear on my life! Marcellus Wallace told us the '${cleanWord}' was already taken care of in the cupboard!`,
+                        dialogue: `Jules, I swear on everything holy! '${cleanWord.charAt(0).toUpperCase() + cleanWord.slice(1)}' was never meant to cross Marcellus! We were protecting it in the cupboard until you arrived!`,
                         statusA: 9.2, statusB: 3.8, tension: 0.94, targetA: 0.54, targetB: 0.70,
                         gestureA: "ROAR_AIM", gestureB: "PLEADING_TERROR",
-                        camZoom: 1.9, camLabel: "SPECT-ACTOR REACTION",
+                        camZoom: 1.9, camLabel: "DESPERATE DEFENSE",
                         shake: 0.7, improvised: true
                     },
                     {
                         id: currentBeatId + 3,
                         speaker: "A",
-                        dialogue: `Well then today is your reckoning day with '${cleanWord}'! Because the Lord does not negotiate over '${cleanWord}'!`,
+                        dialogue: `Then why is '${cleanWord}' smelling like treason to me, Brett?! Because the righteous man does not barter over '${cleanWord}'!`,
                         statusA: 10.0, statusB: 1.0, tension: 1.0, targetA: 0.58, targetB: 0.70,
                         gestureA: "ROAR_EZEKIEL_CLIMAX", gestureB: "FLINCH_TERROR",
-                        camZoom: 2.1, camLabel: "IMPROVISED CLIMAX",
+                        camZoom: 2.1, camLabel: "THE WRATH OF JULES",
                         shake: 1.1, improvised: true
                     }
                 ];
@@ -2097,19 +2097,19 @@
                     {
                         id: currentBeatId + 1,
                         speaker: "A",
-                        dialogue: `Good heavens! What on earth does '${cleanWord}' have to do with the Grand Duke's affairs?!`,
-                        statusA: 6.5, statusB: 6.0, tension: 0.82, targetA: 0.42, targetB: 0.65,
-                        gestureA: "SHOCK", gestureB: "STAND_TALL",
-                        camZoom: 1.4, camLabel: "IMPROV TILT: " + cleanWord.slice(0, 14).toUpperCase(),
+                        dialogue: `The Grand Duke discovered '${cleanWord}' concealed within the manor accounts, Thomas. Your signature was on the ledger!`,
+                        statusA: 8.5, statusB: 4.0, tension: 0.85, targetA: 0.42, targetB: 0.65,
+                        gestureA: "POINT", gestureB: "NERVOUS",
+                        camZoom: 1.45, camLabel: "MANOR DISCOVERY: " + cleanWord.slice(0, 14).toUpperCase(),
                         shake: 0.4, improvised: true
                     },
                     {
                         id: currentBeatId + 2,
                         speaker: "B",
-                        dialogue: `Everything, sir! The '${cleanWord}' was found locked under the floorboards in the master suite!`,
-                        statusA: 3.0, statusB: 9.0, tension: 0.95, targetA: 0.45, targetB: 0.60,
+                        dialogue: `Then you know the truth, Mr. Sterling—'${cleanWord}' was delivered on the Grand Duke's secret orders to expose your theft!`,
+                        statusA: 3.0, statusB: 9.5, tension: 0.98, targetA: 0.45, targetB: 0.60,
                         gestureA: "FALL_KNEE", gestureB: "TRIUMPH",
-                        camZoom: 1.7, camLabel: "SPECT-ACTOR REVERSAL",
+                        camZoom: 1.75, camLabel: "DRAMATIC REVERSAL",
                         shake: 0.8, improvised: true
                     }
                 ];

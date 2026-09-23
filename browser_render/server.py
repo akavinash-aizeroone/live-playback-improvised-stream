@@ -77,8 +77,8 @@ class AppliedAIImprovGenerator:
                 {
                     "id": current_beat_id + 1,
                     "speaker": "A",
-                    "dialogue": f"Hold on a second. Did you just say '{clean_word}'?! Vincent, look at me. Did this boy just bring up '{clean_word}'?!",
-                    "statusA": 9.4,
+                    "dialogue": f"You think Marcellus Wallace didn't know about '{clean_word}'?! Brett, look at me! You think my boss sent his most loyal shepherd across town just to let '{clean_word}' slip out of this room?!",
+                    "statusA": 9.6,
                     "statusB": 2.0,
                     "tension": 0.88,
                     "targetA": 0.52,
@@ -86,14 +86,14 @@ class AppliedAIImprovGenerator:
                     "gestureA": "DRAW_PISTOL",
                     "gestureB": "FLINCH_TERROR",
                     "camZoom": 1.7,
-                    "camLabel": "IMPROV TILT: " + clean_word[:14].upper(),
+                    "camLabel": "CONFRONTATION: " + clean_word[:14].upper(),
                     "shake": 0.5,
                     "improvised": True
                 },
                 {
                     "id": current_beat_id + 2,
                     "speaker": "B",
-                    "dialogue": f"Jules, I swear on my life! Marcellus Wallace told us the '{clean_word}' was already taken care of in the cupboard!",
+                    "dialogue": f"Jules, I swear on everything holy! '{clean_word.capitalize()}' was never meant to cross Marcellus! We were protecting it in the cupboard until you arrived!",
                     "statusA": 9.2,
                     "statusB": 3.8,
                     "tension": 0.94,
@@ -102,14 +102,14 @@ class AppliedAIImprovGenerator:
                     "gestureA": "ROAR_AIM",
                     "gestureB": "PLEADING_TERROR",
                     "camZoom": 1.9,
-                    "camLabel": "SPECT-ACTOR REACTION",
+                    "camLabel": "DESPERATE DEFENSE",
                     "shake": 0.7,
                     "improvised": True
                 },
                 {
                     "id": current_beat_id + 3,
                     "speaker": "A",
-                    "dialogue": f"Well then today is your reckoning day with '{clean_word}'! Because the Lord does not negotiate over '{clean_word}'!",
+                    "dialogue": f"Then why is '{clean_word}' smelling like treason to me, Brett?! Because the righteous man does not barter over '{clean_word}'!",
                     "statusA": 10.0,
                     "statusB": 1.0,
                     "tension": 1.0,
@@ -118,7 +118,7 @@ class AppliedAIImprovGenerator:
                     "gestureA": "ROAR_EZEKIEL_CLIMAX",
                     "gestureB": "FLINCH_TERROR",
                     "camZoom": 2.1,
-                    "camLabel": "IMPROVISED CLIMAX",
+                    "camLabel": "THE WRATH OF JULES",
                     "shake": 1.1,
                     "improvised": True
                 }
@@ -268,32 +268,32 @@ class AppliedAIImprovGenerator:
                 {
                     "id": current_beat_id + 1,
                     "speaker": "A",
-                    "dialogue": f"Good heavens! What on earth does '{clean_word}' have to do with the Grand Duke's affairs?!",
-                    "statusA": 6.5,
-                    "statusB": 6.0,
-                    "tension": 0.82,
+                    "dialogue": f"The Grand Duke discovered '{clean_word}' concealed within the manor accounts, Thomas. Your signature was on the ledger!",
+                    "statusA": 8.5,
+                    "statusB": 4.0,
+                    "tension": 0.85,
                     "targetA": 0.42,
                     "targetB": 0.65,
-                    "gestureA": "SHOCK",
-                    "gestureB": "STAND_TALL",
-                    "camZoom": 1.4,
-                    "camLabel": "IMPROV TILT: " + clean_word[:14].upper(),
+                    "gestureA": "POINT",
+                    "gestureB": "NERVOUS",
+                    "camZoom": 1.45,
+                    "camLabel": "MANOR DISCOVERY: " + clean_word[:14].upper(),
                     "shake": 0.4,
                     "improvised": True
                 },
                 {
                     "id": current_beat_id + 2,
                     "speaker": "B",
-                    "dialogue": f"Everything, sir! The '{clean_word}' was found locked under the floorboards in the master suite!",
+                    "dialogue": f"Then you know the truth, Mr. Sterling—'{clean_word}' was delivered on the Grand Duke's secret orders to expose your theft!",
                     "statusA": 3.0,
-                    "statusB": 9.0,
-                    "tension": 0.95,
+                    "statusB": 9.5,
+                    "tension": 0.98,
                     "targetA": 0.45,
                     "targetB": 0.60,
                     "gestureA": "FALL_KNEE",
                     "gestureB": "TRIUMPH",
-                    "camZoom": 1.7,
-                    "camLabel": "SPECT-ACTOR REVERSAL",
+                    "camZoom": 1.75,
+                    "camLabel": "DRAMATIC REVERSAL",
                     "shake": 0.8,
                     "improvised": True
                 }
@@ -359,10 +359,9 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
                 data = json.loads(body)
             except Exception:
                 data = {}
-
-            prompt_words = data.get("prompt_words", "").strip()
-            scene_key = data.get("scene", "pulp_fiction")
-            intensity = data.get("intensity", "tilt")
+            prompt_words = str(data.get("prompt_words") or data.get("word") or "").strip()
+            scene_key = str(data.get("scene") or data.get("screenplay_id") or "pulp_fiction")
+            intensity = str(data.get("intensity", "tilt"))
             current_beat_id = int(data.get("current_beat_id", 1))
 
             start_t = time.perf_counter()

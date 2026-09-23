@@ -128,6 +128,10 @@ class TelemetryLogger:
         # Register graceful exit flush
         atexit.register(self.shutdown)
 
+    def flush(self):
+        if hasattr(self, "worker"):
+            self.worker.drain_all()
+
     def shutdown(self):
         if hasattr(self, "worker") and self.worker.is_alive():
             self.worker.running = False
@@ -148,6 +152,7 @@ class TelemetryLogger:
         module: Optional[str] = None,
         function: Optional[str] = None,
         duration_ms: float = 0.0,
+        status: str = "success",
         payload: Optional[Dict[str, Any]] = None,
         trace_id: Optional[str] = None,
         span_id: Optional[str] = None,
@@ -175,6 +180,7 @@ class TelemetryLogger:
             parent_span_id=parent_span_id,
             event=event,
             duration_ms=round(duration_ms, 3),
+            status=status,
             payload=clean_payload,
             environment=self.env
         )
@@ -345,6 +351,7 @@ def logged(event: Optional[str] = None, service: str = "alips-engine", record_ar
                         module=func_module,
                         function=func_name,
                         duration_ms=duration_ms,
+                        status="success",
                         payload=payload
                     )
                     return result
@@ -362,6 +369,7 @@ def logged(event: Optional[str] = None, service: str = "alips-engine", record_ar
                         module=func_module,
                         function=func_name,
                         duration_ms=duration_ms,
+                        status="failure",
                         payload=payload
                     )
                     raise
