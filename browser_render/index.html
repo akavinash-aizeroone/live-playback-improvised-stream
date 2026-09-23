@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALIPS Minimalist Line Puppetry - Real-Time Browser Canvas</title>
+    <title>ALIPS Cinematic Screenplay Stage - Real-Time Procedural Line Theater</title>
     <style>
         * {
             margin: 0;
@@ -11,7 +11,7 @@
             box-sizing: border-box;
         }
         body {
-            background-color: #0d0f12;
+            background-color: #0b0d10;
             color: #e2e8f0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             overflow: hidden;
@@ -29,35 +29,42 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: crosshair;
         }
         canvas {
             display: block;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, #15181e 0%, #090a0d 100%);
+            background: radial-gradient(circle at 50% 60%, #151a22 0%, #080a0d 100%);
         }
-        #overlay-ui {
+        #top-bar {
             position: absolute;
-            top: 20px;
+            top: 16px;
             left: 20px;
-            pointer-events: none;
+            right: 20px;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .overlay-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
         }
         .badge {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
+            background: rgba(20, 26, 36, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
             letter-spacing: 0.5px;
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(12px);
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            width: fit-content;
+            color: #cbd5e1;
         }
         .badge-live {
             color: #ef4444;
@@ -77,61 +84,73 @@
             50% { transform: scale(1.3); opacity: 0.5; }
             100% { transform: scale(0.9); opacity: 1; }
         }
-        #click-hint {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(56, 189, 248, 0.12);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            color: #38bdf8;
-            padding: 8px 14px;
+        select {
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #475569;
+            padding: 6px 12px;
             border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            outline: none;
+            cursor: pointer;
+        }
+        select:hover {
+            border-color: #38bdf8;
+        }
+        #screenplay-card {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 16px;
+            border-radius: 10px;
             font-size: 12px;
-            font-weight: 500;
+            backdrop-filter: blur(10px);
             pointer-events: none;
-            backdrop-filter: blur(8px);
+            max-width: 320px;
+        }
+        #screenplay-card h3 {
+            color: #f8fafc;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+        #screenplay-card p {
+            color: #94a3b8;
+            font-size: 11px;
         }
         #controls-panel {
             position: absolute;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(18, 22, 29, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.14);
-            padding: 12px 20px;
-            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 24px;
+            border-radius: 14px;
             backdrop-filter: blur(16px);
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
             font-size: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            z-index: 10;
-        }
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .control-group label {
-            color: #94a3b8;
-            font-weight: 500;
-        }
-        input[type="range"] {
-            accent-color: #38bdf8;
-            cursor: pointer;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.65);
+            z-index: 20;
         }
         button {
             background: #2563eb;
             color: white;
             border: none;
             padding: 8px 14px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
             white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
         button:hover {
             background: #1d4ed8;
@@ -140,30 +159,53 @@
         button.active {
             background: #10b981;
         }
-        #btn-intervene {
+        button.danger {
             background: #b91c1c;
         }
-        #btn-intervene:hover {
+        button.danger:hover {
             background: #dc2626;
         }
         #subtitles {
             position: absolute;
-            bottom: 90px;
+            bottom: 85px;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
-            max-width: 75%;
-            font-size: 18px;
-            font-weight: 500;
-            letter-spacing: 0.3px;
-            color: #f8fafc;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            max-width: 80%;
             pointer-events: none;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 8px 18px;
-            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        #subtitle-speaker {
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #38bdf8;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 3px 10px;
+            border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(6px);
+        }
+        #subtitle-text {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            color: #ffffff;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+            background: rgba(5, 8, 14, 0.7);
+            padding: 10px 22px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            line-height: 1.35;
+        }
+        #beat-indicator {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -171,41 +213,105 @@
     <div id="stage-container">
         <canvas id="stage"></canvas>
 
-        <div id="overlay-ui">
-            <div class="badge badge-live">ALIPS PROCEDURAL KINEMATIC STAGE</div>
-            <div class="badge" id="tension-badge">TENSION: 0.60 (STABLE)</div>
-            <div class="badge" id="status-badge">STATUS SEE-SAW: A(8.0) ↔ B(2.3)</div>
-            <div class="badge" id="fps-badge">FPS: 60</div>
-            <div class="badge" id="walk-badge">LOCOMOTION: ACTIVE (2-BONE IK GAIT)</div>
+        <div id="top-bar">
+            <div class="overlay-group">
+                <div class="badge badge-live">ALIPS CINEMATIC SCREENPLAY THEATER</div>
+                <div class="badge" id="beat-badge">BEAT: 1 / 12</div>
+                <div class="badge" id="tension-badge">TENSION: 0.55</div>
+                <div class="badge" id="status-badge">STATUS: KAFFEE (7.0) ↔ JESSEP (9.5)</div>
+            </div>
+            <div class="overlay-group">
+                <label for="scene-select" style="font-size:12px; color:#94a3b8; font-weight:600;">PLAY SCREENPLAY:</label>
+                <select id="scene-select">
+                    <option value="a_few_good_men" selected>🎬 A Few Good Men ("Code Red" Courtroom Climax)</option>
+                    <option value="social_network">🎬 The Social Network ("Lawyer Up, Asshole")</option>
+                    <option value="blackwood_silver">🎭 The Blackwood Silver (Forum Theatre Improv)</option>
+                </select>
+            </div>
         </div>
 
-        <div id="click-hint">💡 Click anywhere on stage floor to make the active character walk there!</div>
+        <div id="screenplay-card">
+            <h3 id="card-title">A Few Good Men (1992)</h3>
+            <p id="card-writer">Written by Aaron Sorkin</p>
+            <p id="card-loc">Location: Guantanamo Bay Court-Martial Courtroom</p>
+        </div>
 
-        <div id="subtitles">"The estate belongs to the Duke, Thomas. Put down the silver."</div>
+        <div id="subtitles">
+            <div id="subtitle-speaker">LT. DANIEL KAFFEE</div>
+            <div id="subtitle-text">"Colonel Jessep, did you order the Code Red?"</div>
+            <div id="beat-indicator">▶ Auto-playing scene with procedural kinematics & voice synthesis</div>
+        </div>
 
         <div id="controls-panel">
-            <div class="control-group">
-                <label>Dramatic Tension: <span id="val-tension">0.60</span></label>
-                <input type="range" id="slider-tension" min="0" max="1" step="0.05" value="0.60">
-            </div>
-            <div class="control-group">
-                <label>Agent A Status: <span id="val-status-a">8.0</span></label>
-                <input type="range" id="slider-status-a" min="1" max="10" step="0.5" value="8.0">
-            </div>
-            <div class="control-group">
-                <label>Line Wobble: <span id="val-wobble">1.5</span></label>
-                <input type="range" id="slider-wobble" min="0" max="5" step="0.2" value="1.5">
-            </div>
-            <button id="btn-pacing" class="active">AUTO PACING: ON</button>
-            <button id="btn-confront">CONFRONT</button>
-            <button id="btn-intervene">FORUM STOP!</button>
+            <button id="btn-play-pause">⏸ PAUSE</button>
+            <button id="btn-prev">⏮ PREV</button>
+            <button id="btn-next">⏭ NEXT</button>
+            <button id="btn-voice" class="active">🔊 VOICE: ON</button>
+            <button id="btn-intervene" class="danger">⚡ FORUM STOP! (INTERVENE)</button>
         </div>
     </div>
 
     <script>
         // ---------------------------------------------------------------------
-        // ALIPS Minimalist Expressive Line Puppetry Engine
-        // With Analytical 2-Bone Inverse Kinematics (IK) Procedural Walk Engine
+        // ALIPS SCREENPLAY LIBRARY: Dialogues, Status Levels, Stage Blocking & Props
+        // ---------------------------------------------------------------------
+        const SCREENPLAYS = {
+            a_few_good_men: {
+                title: "A Few Good Men (1992)",
+                writer: "Aaron Sorkin",
+                location: "Guantanamo Bay Court-Martial Courtroom",
+                propType: "COURTROOM",
+                charA: { name: "LT. DANIEL KAFFEE", color: "#38bdf8", role: "Prosecuting Defense Counsel", pitch: 1.15, rate: 1.05 },
+                charB: { name: "COL. NATHAN R. JESSEP", color: "#f87171", role: "Guantanamo Base Commander", pitch: 0.82, rate: 0.95 },
+                beats: [
+                    { id: 1, speaker: "A", dialogue: "Colonel Jessep, did you order the Code Red?", statusA: 7.0, statusB: 9.5, tension: 0.55, targetA: 0.32, targetB: 0.78, gestureA: "POINT", gestureB: "SMUG" },
+                    { id: 2, speaker: "B", dialogue: "You don't have to answer that question!", statusA: 7.0, statusB: 9.8, tension: 0.62, targetA: 0.32, targetB: 0.78, gestureA: "STILL", gestureB: "ROAR" },
+                    { id: 3, speaker: "A", dialogue: "Your Honor, I have the right to question the witness on this issue!", statusA: 7.8, statusB: 9.5, tension: 0.70, targetA: 0.44, targetB: 0.78, gestureA: "APPROACH", gestureB: "GLARE" },
+                    { id: 4, speaker: "B", dialogue: "I'll answer the question. You want answers?", statusA: 8.0, statusB: 9.5, tension: 0.75, targetA: 0.48, targetB: 0.74, gestureA: "GROUNDED", gestureB: "LEAN_FORWARD" },
+                    { id: 5, speaker: "A", dialogue: "I think I'm entitled to them.", statusA: 8.5, statusB: 9.2, tension: 0.80, targetA: 0.52, targetB: 0.72, gestureA: "ASSERTIVE", gestureB: "INTIMIDATE" },
+                    { id: 6, speaker: "B", dialogue: "You want answers?!", statusA: 8.5, statusB: 9.8, tension: 0.88, targetA: 0.52, targetB: 0.70, gestureA: "STAND_FIRM", gestureB: "STEP_DOWN" },
+                    { id: 7, speaker: "A", dialogue: "I WANT THE TRUTH!", statusA: 9.6, statusB: 9.8, tension: 0.96, targetA: 0.56, targetB: 0.70, gestureA: "EXPLODE", gestureB: "TENSE" },
+                    { id: 8, speaker: "B", dialogue: "YOU CAN'T HANDLE THE TRUTH!", statusA: 8.2, statusB: 10.0, tension: 1.00, targetA: 0.54, targetB: 0.68, gestureA: "BLOWN_BACK", gestureB: "MONUMENTAL" },
+                    { id: 9, speaker: "B", dialogue: "Son, we live in a world that has walls, and those walls have to be guarded by men with guns. Who's gonna do it? You?", statusA: 7.5, statusB: 10.0, tension: 0.92, targetA: 0.50, targetB: 0.66, gestureA: "LISTENING", gestureB: "PACE_MONOLOGUE" },
+                    { id: 10, speaker: "A", dialogue: "Did you order the Code Red?!", statusA: 9.9, statusB: 8.5, tension: 0.98, targetA: 0.58, targetB: 0.66, gestureA: "LETHAL_POINT", gestureB: "CORNERED" },
+                    { id: 11, speaker: "B", dialogue: "YOU'RE GODDAMN RIGHT I DID!", statusA: 10.0, statusB: 6.0, tension: 1.00, targetA: 0.58, targetB: 0.66, gestureA: "VICTORIOUS_STILL", gestureB: "FATAL_CONFESSION" },
+                    { id: 12, speaker: "A", dialogue: "Your Honor, these are the Marine MPs. Have the witness placed under arrest.", statusA: 10.0, statusB: 2.0, tension: 0.40, targetA: 0.38, targetB: 0.66, gestureA: "STEP_BACK", gestureB: "SHATTERED_COLLAPSE" }
+                ]
+            },
+            social_network: {
+                title: "The Social Network (2010)",
+                writer: "Aaron Sorkin",
+                location: "Palo Alto Facebook Office - Rainy Afternoon",
+                propType: "SILICON_VALLEY",
+                charA: { name: "EDUARDO SAVERIN", color: "#f97316", role: "Cofounder & CFO (Betrayed)", pitch: 1.05, rate: 1.15 },
+                charB: { name: "MARK ZUCKERBERG", color: "#38bdf8", role: "Founder & CEO (Detached)", pitch: 0.90, rate: 1.20 },
+                beats: [
+                    { id: 1, speaker: "A", dialogue: "Mark! You set me up.", statusA: 7.0, statusB: 7.0, tension: 0.60, targetA: 0.30, targetB: 0.72, gestureA: "MARCH_IN", gestureB: "TYPING" },
+                    { id: 2, speaker: "B", dialogue: "A million dollars isn't cool. You know what's cool? A billion dollars.", statusA: 6.5, statusB: 8.5, tension: 0.70, targetA: 0.38, targetB: 0.72, gestureA: "FUME", gestureB: "SLIGHT_TILT" },
+                    { id: 3, speaker: "A", dialogue: "You issued twenty-four million new shares of stock... and diluted my shares down to 0.03 percent!", statusA: 8.5, statusB: 7.5, tension: 0.85, targetA: 0.50, targetB: 0.70, gestureA: "SLAM_TABLE", gestureB: "DEFENSIVE" },
+                    { id: 4, speaker: "B", dialogue: "You signed the papers, Eduardo.", statusA: 8.0, statusB: 8.5, tension: 0.88, targetA: 0.50, targetB: 0.70, gestureA: "STARE", gestureB: "MONOTONE" },
+                    { id: 5, speaker: "A", dialogue: "My name was on the masthead! I was your only friend! You had ONE friend!", statusA: 9.8, statusB: 4.5, tension: 0.98, targetA: 0.58, targetB: 0.70, gestureA: "SHATTER_LAPTOP", gestureB: "FLINCH" },
+                    { id: 6, speaker: "A", dialogue: "You better lawyer up, asshole. Because I'm not coming back for thirty percent. I'm coming back for everything.", statusA: 10.0, statusB: 3.0, tension: 0.90, targetA: 0.54, targetB: 0.74, gestureA: "POINT_EXIT", gestureB: "STILL" }
+                ]
+            },
+            blackwood_silver: {
+                title: "The Blackwood Silver (Forum Improv)",
+                writer: "Autonomous Dramaturgy Engine",
+                location: "Grand Dining Room of Blackwood Manor",
+                propType: "MANOR",
+                charA: { name: "MR. STERLING", color: "#38bdf8", role: "Head Butler (Systemic Oppressor)", pitch: 0.90, rate: 0.95 },
+                charB: { name: "THOMAS", color: "#fb923c", role: "Under-Footman (Whistleblower)", pitch: 1.10, rate: 1.05 },
+                beats: [
+                    { id: 1, speaker: "A", dialogue: "The dessert forks lie precisely one inch from the plate rim, Thomas. We do not tilt them for the morning breeze.", statusA: 8.5, statusB: 2.0, tension: 0.35, targetA: 0.35, targetB: 0.72, gestureA: "POLISH_FORK", gestureB: "NERVOUS" },
+                    { id: 2, speaker: "B", dialogue: "The Grand Duke will not be dining tonight, sir. I saw the Duchess empty the green vial into his gravy.", statusA: 6.2, statusB: 6.0, tension: 0.75, targetA: 0.38, targetB: 0.65, gestureA: "SHOCK", gestureB: "STAND_TALL" },
+                    { id: 3, speaker: "A", dialogue: "Silence! Give me that spoon before the watchman arrives!", statusA: 7.5, statusB: 5.5, tension: 0.88, targetA: 0.45, targetB: 0.65, gestureA: "LUNGE", gestureB: "RETREAT" },
+                    { id: 4, speaker: "B", dialogue: "No, sir. Look at your boots—the green flour is all over your shoes.", statusA: 2.5, statusB: 9.5, tension: 0.95, targetA: 0.45, targetB: 0.58, gestureA: "FALL_KNEE", gestureB: "TRIUMPH" }
+                ]
+            }
+        };
+
+        // ---------------------------------------------------------------------
+        // CANVAS & 2-BONE INVERSE KINEMATICS ENGINE
         // ---------------------------------------------------------------------
         const canvas = document.getElementById('stage');
         const ctx = canvas.getContext('2d');
@@ -218,30 +324,18 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Analytical 2-Bone Inverse Kinematics Solver (Law of Cosines)
         function solve2BoneIK(hx, hy, fx, fy, L1, L2, bendDir = 1) {
             const dx = fx - hx;
             const dy = fy - hy;
             const d = Math.max(1, Math.min(Math.hypot(dx, dy), (L1 + L2) * 0.999));
             const baseAngle = Math.atan2(dy, dx);
-
-            // Law of Cosines for interior knee angle
             const cosBeta = (L1 * L1 + d * d - L2 * L2) / (2 * L1 * d);
             const beta = Math.acos(Math.max(-1, Math.min(1, cosBeta)));
-
-            // Knee coordinates
             const kneeAngle = baseAngle + (beta * bendDir);
             const kx = hx + Math.cos(kneeAngle) * L1;
             const ky = hy + Math.sin(kneeAngle) * L1;
-
             return { kx, ky, fx, fy };
         }
-
-        // Global Parameters
-        let dramaticTension = 0.60;
-        let lineWobbleFactor = 1.5;
-        let sceneHalted = false;
-        let autoPacingEnabled = true;
 
         // Kinematic Character Entity
         class ExpressiveLineCharacter {
@@ -251,13 +345,15 @@
                 this.rootX = defaultX;
                 this.targetX = defaultX;
                 this.groundY = groundY;
-                this.status = statusLevel; // 1.0 to 10.0
-                this.facing = facing; // +1 facing right, -1 facing left
+                this.status = statusLevel;
+                this.facing = facing;
                 this.isSpeaking = false;
                 this.mouthOpen = 0.0;
                 this.mouthSmile = 0.0;
+                this.scaleMultiplier = 1.0;
+                this.currentGesture = "NEUTRAL";
 
-                // Skeletal Dimensions
+                // Bones
                 this.spineLength = 105;
                 this.shoulderWidth = 42;
                 this.hipWidth = 30;
@@ -267,15 +363,14 @@
                 this.lowerLegLen = 62;
                 this.headRadius = 23;
 
-                // Locomotion & Physics Memory
+                // Physics & Gait
                 this.vx = 0;
-                this.walkPhase = 0; // Gait cycle accumulator
+                this.walkPhase = 0;
                 this.pelvisY = groundY - 110;
                 this.spineAngle = 0;
                 this.headAngle = 0;
                 this.isWalking = false;
 
-                // Foot positions
                 this.lFootX = defaultX - 15;
                 this.lFootY = groundY;
                 this.rFootX = defaultX + 15;
@@ -283,22 +378,15 @@
             }
 
             update(time, tension, dt = 0.016) {
-                const normStatus = (this.status - 1) / 9; // 0.0 (submissive) to 1.0 (dominant)
+                const normStatus = (this.status - 1) / 9;
 
-                // 1. Horizontal Locomotion & Pacing
+                // Locomotion
                 const distToTarget = this.targetX - this.rootX;
-                const walkThreshold = 4;
-
-                if (Math.abs(distToTarget) > walkThreshold && !sceneHalted) {
+                if (Math.abs(distToTarget) > 5 && !sceneHalted) {
                     this.isWalking = true;
                     this.facing = distToTarget > 0 ? 1 : -1;
-                    
-                    // High status strides confidently; low status scurries or drags feet
-                    const baseSpeed = (120 + (normStatus * 80) + (tension * 60));
-                    const moveDir = Math.sign(distToTarget);
-                    this.vx = moveDir * baseSpeed * dt;
-
-                    // Clamp to target
+                    const speed = 140 + (normStatus * 70);
+                    this.vx = Math.sign(distToTarget) * speed * dt;
                     if (Math.abs(distToTarget) < Math.abs(this.vx)) {
                         this.rootX = this.targetX;
                         this.vx = 0;
@@ -306,76 +394,33 @@
                     } else {
                         this.rootX += this.vx;
                     }
-
-                    // Advance gait phase based on distance traveled
-                    const strideLength = 32 + (normStatus * 20); // Long strides for high status
-                    this.walkPhase += (Math.abs(this.vx) / strideLength) * Math.PI * 2;
+                    this.walkPhase += (Math.abs(this.vx) / 36) * Math.PI * 2;
                 } else {
                     this.isWalking = false;
                     this.vx = 0;
-                    // Gradually return walk phase to relaxed rest
-                    this.walkPhase *= 0.92;
+                    this.walkPhase *= 0.9;
                 }
 
-                // 2. Procedural Breathing & Gait Bounce
+                // Breathing & Gait Bob
                 const breathFreq = 0.3 + (tension * 0.4);
                 const breathAmp = 3 + (normStatus * 4);
                 const breath = Math.sin(time * breathFreq * Math.PI * 2) * breathAmp;
-
-                // Pelvic vertical bounce (inverted pendulum gait during walking)
                 const walkBob = this.isWalking ? -Math.abs(Math.sin(this.walkPhase)) * 8 : 0;
                 const postureHeightMod = (normStatus - 0.5) * 26;
                 const targetPelvisY = (this.groundY - (this.upperLegLen + this.lowerLegLen - 12)) - postureHeightMod + breath * 0.3 + walkBob;
                 this.pelvisY += (targetPelvisY - this.pelvisY) * 0.2;
 
-                // 3. Dynamic Spine & Head Angles
-                // Walking leans slightly forward; low status hunches
-                const walkLean = this.isWalking ? (this.facing * 0.12) : 0;
+                // Spine Angle & Head Tilt
+                const walkLean = this.isWalking ? (this.facing * 0.1) : 0;
                 const targetSpineAngle = ((1.0 - normStatus) * 0.25) + walkLean;
                 this.spineAngle += (targetSpineAngle - this.spineAngle) * 0.1;
 
                 const targetHeadAngle = (normStatus - 0.7) * 0.2;
                 this.headAngle += (targetHeadAngle - this.headAngle) * 0.1;
 
-                // 4. Foot Trajectory Kinematics (Gait Cycle)
-                const strideLen = 30 + (normStatus * 18);
-                const stepHeight = 16 + (tension * 8);
-
-                const lHipX = this.rootX - (this.hipWidth * 0.5);
-                const rHipX = this.rootX + (this.hipWidth * 0.5);
-
-                if (this.isWalking) {
-                    // Left Leg Phase
-                    const phiL = this.walkPhase;
-                    const sinL = Math.sin(phiL);
-                    const cosL = Math.cos(phiL);
-
-                    this.lFootX = lHipX + (cosL * strideLen * this.facing);
-                    // Lift off ground during swing phase (sin > 0)
-                    this.lFootY = (sinL > 0) ? this.groundY - (sinL * stepHeight) : this.groundY;
-
-                    // Right Leg Phase (Anti-phase, 180 deg shifted)
-                    const phiR = this.walkPhase + Math.PI;
-                    const sinR = Math.sin(phiR);
-                    const cosR = Math.cos(phiR);
-
-                    this.rFootX = rHipX + (cosR * strideLen * this.facing);
-                    this.rFootY = (sinR > 0) ? this.groundY - (sinR * stepHeight) : this.groundY;
-                } else {
-                    // Resting stance width governed by status
-                    const restStance = 16 + (normStatus * 18);
-                    const targetLFootX = lHipX - (restStance * 0.5);
-                    const targetRFootX = rHipX + (restStance * 0.5);
-
-                    this.lFootX += (targetLFootX - this.lFootX) * 0.2;
-                    this.rFootX += (targetRFootX - this.rFootX) * 0.2;
-                    this.lFootY += (this.groundY - this.lFootY) * 0.2;
-                    this.rFootY += (this.groundY - this.rFootY) * 0.2;
-                }
-
-                // 5. Speech Viseme Oscillation
+                // Mouth
                 if (this.isSpeaking) {
-                    this.mouthOpen = Math.abs(Math.sin(time * 14)) * 0.85;
+                    this.mouthOpen = Math.abs(Math.sin(time * 15)) * 0.85;
                 } else {
                     this.mouthOpen *= 0.85;
                 }
@@ -385,7 +430,7 @@
                 ctx.save();
 
                 const normStatus = (this.status - 1) / 9;
-                const baseLineWidth = 2.0 + (normStatus * 2.5);
+                const baseLineWidth = (2.0 + (normStatus * 2.8)) * this.scaleMultiplier;
                 ctx.lineWidth = baseLineWidth;
                 ctx.strokeStyle = this.baseColor;
                 ctx.lineCap = 'round';
@@ -399,9 +444,9 @@
                 const px = this.rootX + jitter(0.5);
                 const py = this.pelvisY + jitter(0.5);
 
-                // 1. Spine & Neck Vector
-                const neckX = px + Math.sin(this.spineAngle) * this.spineLength + jitter(0.7);
-                const neckY = py - Math.cos(this.spineAngle) * this.spineLength + jitter(0.7);
+                // 1. Spine
+                const neckX = px + Math.sin(this.spineAngle) * (this.spineLength * this.scaleMultiplier) + jitter(0.6);
+                const neckY = py - Math.cos(this.spineAngle) * (this.spineLength * this.scaleMultiplier) + jitter(0.6);
 
                 ctx.beginPath();
                 ctx.moveTo(px, py);
@@ -410,30 +455,31 @@
                 ctx.quadraticCurveTo(ctrlX, ctrlY, neckX, neckY);
                 ctx.stroke();
 
-                // 2. Head & Facial Features
-                const headCenterX = neckX + Math.sin(this.headAngle) * this.headRadius + jitter(0.5);
-                const headCenterY = neckY - Math.cos(this.headAngle) * this.headRadius + jitter(0.5);
+                // 2. Head & Face
+                const hRadius = this.headRadius * this.scaleMultiplier;
+                const headCenterX = neckX + Math.sin(this.headAngle) * hRadius + jitter(0.5);
+                const headCenterY = neckY - Math.cos(this.headAngle) * hRadius + jitter(0.5);
 
                 ctx.beginPath();
-                ctx.arc(headCenterX, headCenterY, this.headRadius, 0, Math.PI * 2);
+                ctx.arc(headCenterX, headCenterY, hRadius, 0, Math.PI * 2);
                 ctx.stroke();
 
                 // Eyes
-                const eyeSpread = 7;
-                const eyeYOffset = -2;
+                const eyeSpread = 7 * this.scaleMultiplier;
+                const eyeYOffset = -2 * this.scaleMultiplier;
                 ctx.fillStyle = this.baseColor;
                 ctx.beginPath();
-                ctx.arc(headCenterX + (eyeSpread * this.facing * 0.7), headCenterY + eyeYOffset, 2.2, 0, Math.PI * 2);
+                ctx.arc(headCenterX + (eyeSpread * this.facing * 0.7), headCenterY + eyeYOffset, 2.2 * this.scaleMultiplier, 0, Math.PI * 2);
                 ctx.fill();
 
                 // Mouth
-                const mouthY = headCenterY + 9;
-                const mouthX = headCenterX + (this.facing * 6);
-                const openDist = this.mouthOpen * 7;
+                const mouthY = headCenterY + (9 * this.scaleMultiplier);
+                const mouthX = headCenterX + (this.facing * 6 * this.scaleMultiplier);
+                const openDist = this.mouthOpen * 7 * this.scaleMultiplier;
 
                 ctx.beginPath();
                 if (openDist > 1.0) {
-                    ctx.ellipse(mouthX, mouthY, 4, openDist, 0, 0, Math.PI * 2);
+                    ctx.ellipse(mouthX, mouthY, 4 * this.scaleMultiplier, openDist, 0, 0, Math.PI * 2);
                     ctx.stroke();
                 } else {
                     ctx.moveTo(mouthX - 4, mouthY);
@@ -441,285 +487,361 @@
                     ctx.stroke();
                 }
 
-                // 3. Shoulders & Arms (With Biological Counter-Swing Locomotion)
+                // 3. Shoulders & Expressive Arms
                 const shoulderY = neckY + 12;
-                const lShoulderX = neckX - (this.shoulderWidth * 0.5);
-                const rShoulderX = neckX + (this.shoulderWidth * 0.5);
+                const sWidth = this.shoulderWidth * this.scaleMultiplier;
+                const lShoulderX = neckX - (sWidth * 0.5);
+                const rShoulderX = neckX + (sWidth * 0.5);
 
                 ctx.beginPath();
                 ctx.moveTo(lShoulderX, shoulderY);
                 ctx.lineTo(rShoulderX, shoulderY);
                 ctx.stroke();
 
-                // Walking arm counter-swing
-                const armSwing = this.isWalking ? Math.sin(this.walkPhase) * 26 * this.facing : 0;
-                const gestureAmp = this.isSpeaking ? Math.sin(time * 6) * 18 : 0;
+                // Gestural Arm Vectors based on Screenplay Beats
+                let lHandX = lShoulderX - 20, lHandY = shoulderY + 45;
+                let rHandX = rShoulderX + (this.facing * 25), rHandY = shoulderY + 40;
 
-                // Left Arm (Swings with Right Leg)
-                const lHandX = lShoulderX - (armSwing * 0.9) - 15;
-                const lHandY = shoulderY + 45 + Math.abs(armSwing * 0.4);
+                const armSwing = this.isWalking ? Math.sin(this.walkPhase) * 26 * this.facing : 0;
+                lHandX -= armSwing;
+                rHandX += armSwing;
+
+                if (this.currentGesture === "POINT" || this.currentGesture === "LETHAL_POINT") {
+                    rHandX = rShoulderX + (this.facing * 55);
+                    rHandY = shoulderY + 10;
+                } else if (this.currentGesture === "EXPLODE" || this.currentGesture === "ROAR") {
+                    lHandX = lShoulderX - 35; lHandY = shoulderY - 15;
+                    rHandX = rShoulderX + (this.facing * 45); rHandY = shoulderY - 15;
+                } else if (this.currentGesture === "LEAN_FORWARD") {
+                    rHandX = rShoulderX + (this.facing * 40); rHandY = shoulderY + 30;
+                } else if (this.currentGesture === "SHATTER_LAPTOP" || this.currentGesture === "SLAM_TABLE") {
+                    rHandX = rShoulderX + (this.facing * 30); rHandY = shoulderY + 60;
+                }
+
+                // Draw Left Arm
                 ctx.beginPath();
                 ctx.moveTo(lShoulderX, shoulderY);
                 ctx.lineTo(lShoulderX - 10, shoulderY + 25);
                 ctx.lineTo(lHandX, lHandY);
                 ctx.stroke();
 
-                // Right Arm (Swings with Left Leg + Speaking Gestures)
-                const rHandX = rShoulderX + (armSwing * 0.9) + (this.facing * 20) + gestureAmp;
-                const rHandY = shoulderY + 35 - gestureAmp - Math.abs(armSwing * 0.3);
+                // Draw Right Arm
                 ctx.beginPath();
                 ctx.moveTo(rShoulderX, shoulderY);
                 ctx.lineTo(rShoulderX + (this.facing * 12), shoulderY + 22);
                 ctx.lineTo(rHandX, rHandY);
                 ctx.stroke();
 
-                // 4. Pelvis & 2-Bone Inverse Kinematic Legs
-                const lHipX = px - (this.hipWidth * 0.5);
-                const rHipX = px + (this.hipWidth * 0.5);
+                // 4. Pelvis & 2-Bone IK Legs
+                const hWidth = this.hipWidth * this.scaleMultiplier;
+                const lHipX = px - (hWidth * 0.5);
+                const rHipX = px + (hWidth * 0.5);
 
-                // Solve Left Leg IK
+                const strideLen = 30 + (normStatus * 18);
+                const stepHeight = 16 + (tension * 8);
+
+                if (this.isWalking) {
+                    const sinL = Math.sin(this.walkPhase), cosL = Math.cos(this.walkPhase);
+                    this.lFootX = lHipX + (cosL * strideLen * this.facing);
+                    this.lFootY = (sinL > 0) ? this.groundY - (sinL * stepHeight) : this.groundY;
+
+                    const sinR = Math.sin(this.walkPhase + Math.PI), cosR = Math.cos(this.walkPhase + Math.PI);
+                    this.rFootX = rHipX + (cosR * strideLen * this.facing);
+                    this.rFootY = (sinR > 0) ? this.groundY - (sinR * stepHeight) : this.groundY;
+                } else {
+                    const restStance = 16 + (normStatus * 18);
+                    this.lFootX += (lHipX - (restStance * 0.5) - this.lFootX) * 0.2;
+                    this.rFootX += (rHipX + (restStance * 0.5) - this.rFootX) * 0.2;
+                    this.lFootY += (this.groundY - this.lFootY) * 0.2;
+                    this.rFootY += (this.groundY - this.rFootY) * 0.2;
+                }
+
                 const lIK = solve2BoneIK(lHipX, py, this.lFootX, this.lFootY, this.upperLegLen, this.lowerLegLen, this.facing);
                 ctx.beginPath();
                 ctx.moveTo(lHipX, py);
-                ctx.lineTo(lIK.kx, lIK.ky); // Knee joint
-                ctx.lineTo(lIK.fx, lIK.fy); // Foot contact
-                ctx.lineTo(lIK.fx + (this.facing * 8), lIK.fy); // Foot toe
+                ctx.lineTo(lIK.kx, lIK.ky);
+                ctx.lineTo(lIK.fx, lIK.fy);
+                ctx.lineTo(lIK.fx + (this.facing * 8), lIK.fy);
                 ctx.stroke();
 
-                // Solve Right Leg IK
                 const rIK = solve2BoneIK(rHipX, py, this.rFootX, this.rFootY, this.upperLegLen, this.lowerLegLen, this.facing);
                 ctx.beginPath();
                 ctx.moveTo(rHipX, py);
-                ctx.lineTo(rIK.kx, rIK.ky); // Knee joint
-                ctx.lineTo(rIK.fx, rIK.fy); // Foot contact
-                ctx.lineTo(rIK.fx + (this.facing * 8), rIK.fy); // Foot toe
+                ctx.lineTo(rIK.kx, rIK.ky);
+                ctx.lineTo(rIK.fx, rIK.fy);
+                ctx.lineTo(rIK.fx + (this.facing * 8), rIK.fy);
                 ctx.stroke();
 
-                // Character Name Tag
-                ctx.font = '11px -apple-system, sans-serif';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                // Name tag
+                ctx.font = 'bold 11px -apple-system, sans-serif';
+                ctx.fillStyle = this.baseColor;
                 ctx.textAlign = 'center';
-                const walkStateText = this.isWalking ? ' 🚶' : '';
-                ctx.fillText(`${this.name} [S:${this.status.toFixed(1)}]${walkStateText}`, px, this.groundY + 25);
+                ctx.fillText(`${this.name}`, px, this.groundY + 22);
 
                 ctx.restore();
             }
         }
 
-        // Initialize Dramaturgical Entities
+        // ---------------------------------------------------------------------
+        // SCREENPLAY STAGE CONTROLLER & PROPS
+        // ---------------------------------------------------------------------
         const groundLevel = window.innerHeight * 0.72;
-        const agentA = new ExpressiveLineCharacter("AGENT_A", "#38bdf8", window.innerWidth * 0.28, groundLevel, 8.0, 1);
-        const agentB = new ExpressiveLineCharacter("AGENT_B", "#fb923c", window.innerWidth * 0.72, groundLevel, 2.3, -1);
-        agentA.isSpeaking = true;
+        let currentScreenplayKey = "a_few_good_men";
+        let currentBeatIndex = 0;
+        let isPlaying = true;
+        let voiceEnabled = true;
+        let sceneHalted = false;
+        let dramaticTension = 0.55;
+        let lineWobbleFactor = 1.5;
+        let beatTimer = null;
 
-        // Autonomous Theatrical Pacing Controller
-        let lastPacingDecisionTime = 0;
-        function updateAutonomousStagePacing(time) {
-            if (!autoPacingEnabled || sceneHalted) return;
+        let charA = new ExpressiveLineCharacter("LT. DANIEL KAFFEE", "#38bdf8", window.innerWidth * 0.32, groundLevel, 7.0, 1);
+        let charB = new ExpressiveLineCharacter("COL. NATHAN R. JESSEP", "#f87171", window.innerWidth * 0.78, groundLevel, 9.5, -1);
 
-            // Make a theatrical movement decision every 4-6 seconds
-            if (time - lastPacingDecisionTime > 4.5) {
-                lastPacingDecisionTime = time;
+        function loadScreenplay(key) {
+            currentScreenplayKey = key;
+            currentBeatIndex = 0;
+            const sp = SCREENPLAYS[key];
 
-                const centerStage = window.innerWidth * 0.5;
-                const stageLeft = window.innerWidth * 0.22;
-                const stageRight = window.innerWidth * 0.78;
+            document.getElementById('card-title').textContent = sp.title;
+            document.getElementById('card-writer').textContent = `Written by ${sp.writer}`;
+            document.getElementById('card-loc').textContent = `Location: ${sp.location}`;
 
-                // Dominant character (Status >= 7) steps forward to confront or patrol
-                if (agentA.status >= 7.0) {
-                    if (agentA.isSpeaking) {
-                        // Strides forward into center stage
-                        agentA.targetX = centerStage - 80 + (Math.random() * 60);
-                    } else {
-                        // Returns to commanding posture
-                        agentA.targetX = stageLeft + (Math.random() * 70);
+            charA.name = sp.charA.name;
+            charA.baseColor = sp.charA.color;
+            charA.rootX = window.innerWidth * 0.30;
+            charA.targetX = charA.rootX;
+
+            charB.name = sp.charB.name;
+            charB.baseColor = sp.charB.color;
+            charB.rootX = window.innerWidth * 0.75;
+            charB.targetX = charB.rootX;
+
+            applyBeat(0);
+        }
+
+        function applyBeat(index) {
+            const sp = SCREENPLAYS[currentScreenplayKey];
+            if (index < 0 || index >= sp.beats.length) return;
+            currentBeatIndex = index;
+            const beat = sp.beats[index];
+
+            dramaticTension = beat.tension;
+            document.getElementById('beat-badge').textContent = `BEAT: ${index + 1} / ${sp.beats.length}`;
+            document.getElementById('tension-badge').textContent = `TENSION: ${dramaticTension.toFixed(2)}`;
+            document.getElementById('status-badge').textContent = `STATUS: ${sp.charA.name.split(' ')[0]} (${beat.statusA.toFixed(1)}) ↔ ${sp.charB.name.split(' ')[0]} (${beat.statusB.toFixed(1)})`;
+
+            // Update subtitles
+            const speakerName = beat.speaker === "A" ? sp.charA.name : sp.charB.name;
+            const speakerColor = beat.speaker === "A" ? sp.charA.color : sp.charB.color;
+            document.getElementById('subtitle-speaker').textContent = speakerName;
+            document.getElementById('subtitle-speaker').style.color = speakerColor;
+            document.getElementById('subtitle-text').textContent = `"${beat.dialogue}"`;
+
+            // Update Character States & Targets
+            charA.status = beat.statusA;
+            charB.status = beat.statusB;
+            charA.targetX = window.innerWidth * beat.targetA;
+            charB.targetX = window.innerWidth * beat.targetB;
+            charA.isSpeaking = (beat.speaker === "A");
+            charB.isSpeaking = (beat.speaker === "B");
+            charA.currentGesture = beat.gestureA || "NEUTRAL";
+            charB.currentGesture = beat.gestureB || "NEUTRAL";
+
+            // Monumental scale expansion for Col. Jessep on "CAN'T HANDLE THE TRUTH"
+            if (beat.gestureB === "MONUMENTAL" || beat.gestureB === "ROAR") {
+                charB.scaleMultiplier = 1.25;
+            } else if (beat.gestureB === "SHATTERED_COLLAPSE") {
+                charB.scaleMultiplier = 0.85;
+            } else {
+                charB.scaleMultiplier = 1.0;
+            }
+
+            // Web Speech API Vocalization
+            if (voiceEnabled && !sceneHalted && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(beat.dialogue);
+                const voiceConfig = beat.speaker === "A" ? sp.charA : sp.charB;
+                utterance.pitch = voiceConfig.pitch;
+                utterance.rate = voiceConfig.rate;
+
+                utterance.onend = () => {
+                    if (isPlaying && !sceneHalted) {
+                        clearTimeout(beatTimer);
+                        beatTimer = setTimeout(() => {
+                            if (currentBeatIndex < sp.beats.length - 1) {
+                                applyBeat(currentBeatIndex + 1);
+                            } else {
+                                isPlaying = false;
+                                document.getElementById('btn-play-pause').textContent = "▶ RESTART";
+                            }
+                        }, 1200);
                     }
-                }
-
-                // Submissive or agitated character retreats or paces nervously
-                if (agentB.status < 5.0) {
-                    if (agentB.isSpeaking) {
-                        // Anxious pacing: steps toward center, then retreats
-                        agentB.targetX = centerStage + 110 + (Math.random() * 80);
+                };
+                window.speechSynthesis.speak(utterance);
+            } else if (isPlaying && !sceneHalted) {
+                // If speech disabled, advance based on reading time
+                clearTimeout(beatTimer);
+                const duration = Math.max(3000, beat.dialogue.length * 75);
+                beatTimer = setTimeout(() => {
+                    if (currentBeatIndex < sp.beats.length - 1) {
+                        applyBeat(currentBeatIndex + 1);
                     } else {
-                        // Backs away toward stage right border
-                        agentB.targetX = stageRight - (Math.random() * 60);
+                        isPlaying = false;
+                        document.getElementById('btn-play-pause').textContent = "▶ RESTART";
                     }
-                } else {
-                    // Status Clash: Both step into tight confrontation zone!
-                    agentB.targetX = centerStage + 60;
-                    agentA.targetX = centerStage - 60;
-                }
+                }, duration);
             }
         }
 
-        // Render Loop
-        let lastFrameTime = performance.now();
-        let frameCount = 0;
-        let lastFpsUpdate = performance.now();
+        // Draw Courtroom / Office Minimalist Props
+        function drawProps(ctx, propType) {
+            ctx.save();
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+            ctx.lineWidth = 2;
+
+            if (propType === "COURTROOM") {
+                // Witness Box Railing
+                const boxX = window.innerWidth * 0.72;
+                ctx.strokeRect(boxX, groundLevel - 55, window.innerWidth * 0.15, 55);
+                ctx.beginPath();
+                ctx.moveTo(boxX + 25, groundLevel - 55);
+                ctx.lineTo(boxX + 25, groundLevel);
+                ctx.stroke();
+
+                // Marine Corps Flag Pole
+                ctx.beginPath();
+                ctx.moveTo(boxX + window.innerWidth * 0.16, groundLevel - 140);
+                ctx.lineTo(boxX + window.innerWidth * 0.16, groundLevel);
+                ctx.stroke();
+                ctx.fillStyle = "rgba(239, 68, 68, 0.3)";
+                ctx.fillRect(boxX + window.innerWidth * 0.16, groundLevel - 140, 24, 16);
+
+                // Counsel Table
+                const tableX = window.innerWidth * 0.18;
+                ctx.strokeRect(tableX, groundLevel - 40, window.innerWidth * 0.14, 40);
+                // Yellow legal pad on table
+                ctx.fillStyle = "rgba(250, 204, 21, 0.6)";
+                ctx.fillRect(tableX + 30, groundLevel - 44, 18, 6);
+
+            } else if (propType === "SILICON_VALLEY") {
+                // Glass Standing Desk
+                const deskX = window.innerWidth * 0.68;
+                ctx.strokeRect(deskX, groundLevel - 52, window.innerWidth * 0.12, 52);
+                // Laptop on desk
+                ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
+                ctx.strokeRect(deskX + 15, groundLevel - 64, 20, 12);
+            }
+            ctx.restore();
+        }
+
+        // ---------------------------------------------------------------------
+        // ANIMATION LOOP
+        // ---------------------------------------------------------------------
+        let lastTimestamp = performance.now();
 
         function animate(timestamp) {
-            const dt = Math.min(0.05, (timestamp - lastFrameTime) * 0.001);
-            lastFrameTime = timestamp;
+            const dt = Math.min(0.05, (timestamp - lastTimestamp) * 0.001);
+            lastTimestamp = timestamp;
             const time = timestamp * 0.001;
 
-            frameCount++;
-            if (timestamp - lastFpsUpdate >= 1000) {
-                document.getElementById('fps-badge').textContent = `FPS: ${frameCount}`;
-                frameCount = 0;
-                lastFpsUpdate = timestamp;
-            }
-
-            // Clear Canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Stage Horizon Floor
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+            // Ground Horizon
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
             ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.moveTo(0, groundLevel);
             ctx.lineTo(window.innerWidth, groundLevel);
             ctx.stroke();
 
-            // Alternate speaking turn every 5 seconds for natural improv
+            // Render Screenplay Scene Props
+            const sp = SCREENPLAYS[currentScreenplayKey];
+            drawProps(ctx, sp.propType);
+
+            // Update & Draw Characters
             if (!sceneHalted) {
-                const turnCycle = Math.floor(time / 5) % 2;
-                agentA.isSpeaking = (turnCycle === 0);
-                agentB.isSpeaking = (turnCycle === 1);
-
-                if (agentA.isSpeaking) {
-                    document.getElementById('subtitles').textContent = '"The estate belongs to the Duke, Thomas. Put down the silver."';
-                } else {
-                    document.getElementById('subtitles').textContent = '"The Duke will not be dining tonight, sir. Look at your boots."';
-                }
-
-                updateAutonomousStagePacing(time);
-                agentA.update(time, dramaticTension, dt);
-                agentB.update(time, dramaticTension, dt);
+                charA.update(time, dramaticTension, dt);
+                charB.update(time, dramaticTension, dt);
             }
+            charA.draw(ctx, time, lineWobbleFactor, dramaticTension);
+            charB.draw(ctx, time, lineWobbleFactor, dramaticTension);
 
-            // Render Both Characters
-            agentA.draw(ctx, time, lineWobbleFactor, dramaticTension);
-            agentB.draw(ctx, time, lineWobbleFactor, dramaticTension);
-
-            // Forum Theatre Freeze Staging Overlay
+            // Forum Intervention Freeze Overlay
             if (sceneHalted) {
-                ctx.fillStyle = "rgba(239, 68, 68, 0.06)";
+                ctx.fillStyle = "rgba(239, 68, 68, 0.08)";
                 ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
 
-                ctx.strokeStyle = "rgba(239, 68, 68, 0.8)";
-                ctx.lineWidth = 2;
-                ctx.strokeRect(40, 40, window.innerWidth - 80, window.innerHeight - 80);
+                ctx.strokeStyle = "#ef4444";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(30, 30, window.innerWidth - 60, window.innerHeight - 60);
 
-                ctx.font = "bold 28px -apple-system, sans-serif";
+                ctx.font = "bold 26px -apple-system, sans-serif";
                 ctx.fillStyle = "#ef4444";
                 ctx.textAlign = "center";
-                ctx.fillText("⚡ FORUM THEATRE: SPECT-ACTOR INTERVENTION (SCENE HALTED) ⚡", window.innerWidth * 0.5, 90);
+                ctx.fillText("⚡ FORUM THEATRE: MOVIE SCENE HALTED (SPECT-ACTOR TRIAL) ⚡", window.innerWidth * 0.5, 90);
                 ctx.font = "14px -apple-system, sans-serif";
                 ctx.fillStyle = "#cbd5e1";
-                ctx.fillText("Pre-crisis snapshot preserved. Locomotion and speech paused for audience substitution.", window.innerWidth * 0.5, 118);
+                ctx.fillText("Replace Lt. Daniel Kaffee or Col. Jessep. Test an alternate tactical interrogation!", window.innerWidth * 0.5, 118);
             }
 
             requestAnimationFrame(animate);
         }
         requestAnimationFrame(animate);
 
-        // Click on Stage Horizon to Command Character Walking
-        canvas.addEventListener('click', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            
-            // Move whichever character is currently speaking or closer
-            const distA = Math.abs(clickX - agentA.rootX);
-            const distB = Math.abs(clickX - agentB.rootX);
+        // ---------------------------------------------------------------------
+        // UI & EVENT HANDLERS
+        // ---------------------------------------------------------------------
+        const sceneSelect = document.getElementById('scene-select');
+        sceneSelect.addEventListener('change', (e) => {
+            loadScreenplay(e.target.value);
+        });
 
-            if (agentA.isSpeaking || distA < distB) {
-                agentA.targetX = Math.max(50, Math.min(window.innerWidth - 50, clickX));
-            } else {
-                agentB.targetX = Math.max(50, Math.min(window.innerWidth - 50, clickX));
+        const btnPlayPause = document.getElementById('btn-play-pause');
+        btnPlayPause.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            btnPlayPause.textContent = isPlaying ? "⏸ PAUSE" : "▶ PLAY";
+            if (isPlaying) applyBeat(currentBeatIndex);
+        });
+
+        document.getElementById('btn-next').addEventListener('click', () => {
+            const sp = SCREENPLAYS[currentScreenplayKey];
+            if (currentBeatIndex < sp.beats.length - 1) {
+                applyBeat(currentBeatIndex + 1);
             }
         });
 
-        // UI Event Listeners
-        const sliderTension = document.getElementById('slider-tension');
-        sliderTension.addEventListener('input', (e) => {
-            dramaticTension = parseFloat(e.target.value);
-            document.getElementById('val-tension').textContent = dramaticTension.toFixed(2);
-            document.getElementById('tension-badge').textContent = `TENSION: ${dramaticTension.toFixed(2)} (${dramaticTension > 0.7 ? 'HIGH' : 'NORMAL'})`;
+        document.getElementById('btn-prev').addEventListener('click', () => {
+            if (currentBeatIndex > 0) {
+                applyBeat(currentBeatIndex - 1);
+            }
         });
 
-        const sliderStatusA = document.getElementById('slider-status-a');
-        sliderStatusA.addEventListener('input', (e) => {
-            agentA.status = parseFloat(e.target.value);
-            agentB.status = Math.max(1.0, 10.0 - agentA.status * 0.8);
-            document.getElementById('val-status-a').textContent = agentA.status.toFixed(1);
-            document.getElementById('status-badge').textContent = `STATUS SEE-SAW: A(${agentA.status.toFixed(1)}) ↔ B(${agentB.status.toFixed(1)})`;
-        });
-
-        const sliderWobble = document.getElementById('slider-wobble');
-        sliderWobble.addEventListener('input', (e) => {
-            lineWobbleFactor = parseFloat(e.target.value);
-            document.getElementById('val-wobble').textContent = lineWobbleFactor.toFixed(1);
-        });
-
-        const btnPacing = document.getElementById('btn-pacing');
-        btnPacing.addEventListener('click', () => {
-            autoPacingEnabled = !autoPacingEnabled;
-            btnPacing.textContent = autoPacingEnabled ? "AUTO PACING: ON" : "AUTO PACING: OFF";
-            btnPacing.classList.toggle('active', autoPacingEnabled);
-        });
-
-        const btnConfront = document.getElementById('btn-confront');
-        btnConfront.addEventListener('click', () => {
-            const center = window.innerWidth * 0.5;
-            agentA.targetX = center - 60;
-            agentB.targetX = center + 60;
-            agentA.status = 9.0;
-            agentB.status = 7.5; // Trigger intense status clash!
+        const btnVoice = document.getElementById('btn-voice');
+        btnVoice.addEventListener('click', () => {
+            voiceEnabled = !voiceEnabled;
+            btnVoice.textContent = voiceEnabled ? "🔊 VOICE: ON" : "🔇 VOICE: OFF";
+            btnVoice.classList.toggle('active', voiceEnabled);
+            if (!voiceEnabled && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
         });
 
         const btnIntervene = document.getElementById('btn-intervene');
         btnIntervene.addEventListener('click', () => {
             sceneHalted = !sceneHalted;
-            btnIntervene.textContent = sceneHalted ? "RESUME SCENE" : "FORUM STOP!";
-            btnIntervene.style.background = sceneHalted ? "#ef4444" : "#b91c1c";
+            btnIntervene.textContent = sceneHalted ? "RESUME SCENE" : "⚡ FORUM STOP!";
+            btnIntervene.classList.toggle('active', sceneHalted);
+            if (sceneHalted && 'speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                clearTimeout(beatTimer);
+            } else if (!sceneHalted) {
+                applyBeat(currentBeatIndex);
+            }
         });
 
-        // ---------------------------------------------------------------------
-        // Native EventSource (SSE) Telemetry Listener from ALIPS Python Backend
-        // ---------------------------------------------------------------------
-        function connectTelemetry() {
-            const evtSource = new EventSource('/stream');
-            evtSource.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.tension !== undefined) {
-                        dramaticTension = data.tension;
-                        sliderTension.value = dramaticTension;
-                        document.getElementById('val-tension').textContent = dramaticTension.toFixed(2);
-                        document.getElementById('tension-badge').textContent = `TENSION: ${dramaticTension.toFixed(2)} (${dramaticTension > 0.7 ? 'HIGH' : 'NORMAL'})`;
-                    }
-                    if (data.status_a !== undefined) {
-                        agentA.status = data.status_a;
-                        agentB.status = data.status_b;
-                        sliderStatusA.value = agentA.status;
-                        document.getElementById('val-status-a').textContent = agentA.status.toFixed(1);
-                        document.getElementById('status-badge').textContent = `STATUS SEE-SAW: A(${agentA.status.toFixed(1)}) ↔ B(${agentB.status.toFixed(1)})`;
-                    }
-                    if (data.subtitles) document.getElementById('subtitles').textContent = data.subtitles;
-                    if (data.current_speaker) {
-                        agentA.isSpeaking = (data.current_speaker === "AGENT_A");
-                        agentB.isSpeaking = (data.current_speaker === "AGENT_B");
-                    }
-                } catch (err) {
-                    console.error("Telemetry parse error", err);
-                }
-            };
-            evtSource.onerror = () => {
-                console.log("SSE reconnecting...");
-            };
-        }
-        connectTelemetry();
+        // Initialize with A Few Good Men
+        loadScreenplay("a_few_good_men");
     </script>
 </body>
 </html>
