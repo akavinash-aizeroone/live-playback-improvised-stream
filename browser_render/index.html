@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALIPS Cinematic Screenplay Stage - Real-Time Procedural Line Theater</title>
+    <title>ALIPS Cinematic Screenplay Theater - Procedural Line Art & Web Audio Foley</title>
     <style>
         * {
             margin: 0;
@@ -11,7 +11,7 @@
             box-sizing: border-box;
         }
         body {
-            background-color: #0b0d10;
+            background-color: #07090c;
             color: #e2e8f0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             overflow: hidden;
@@ -34,7 +34,7 @@
             display: block;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle at 50% 60%, #151a22 0%, #080a0d 100%);
+            background: radial-gradient(circle at 50% 50%, #111620 0%, #050608 100%);
         }
         #top-bar {
             position: absolute;
@@ -45,7 +45,7 @@
             justify-content: space-between;
             align-items: center;
             pointer-events: none;
-            z-index: 20;
+            z-index: 30;
         }
         .overlay-group {
             display: flex;
@@ -54,7 +54,7 @@
             pointer-events: auto;
         }
         .badge {
-            background: rgba(20, 26, 36, 0.85);
+            background: rgba(15, 23, 42, 0.88);
             border: 1px solid rgba(255, 255, 255, 0.14);
             padding: 6px 14px;
             border-radius: 8px;
@@ -88,7 +88,7 @@
             background: #1e293b;
             color: #f8fafc;
             border: 1px solid #475569;
-            padding: 6px 12px;
+            padding: 7px 14px;
             border-radius: 8px;
             font-size: 13px;
             font-weight: 600;
@@ -102,40 +102,45 @@
             position: absolute;
             top: 70px;
             left: 20px;
-            background: rgba(15, 23, 42, 0.75);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px 16px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 12px 18px;
             border-radius: 10px;
             font-size: 12px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             pointer-events: none;
-            max-width: 320px;
+            max-width: 340px;
+            z-index: 20;
         }
         #screenplay-card h3 {
             color: #f8fafc;
             font-size: 14px;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
         #screenplay-card p {
             color: #94a3b8;
             font-size: 11px;
+            line-height: 1.4;
         }
         #controls-panel {
             position: absolute;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.92);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(15, 23, 42, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.16);
             padding: 12px 24px;
             border-radius: 14px;
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(18px);
             display: flex;
             align-items: center;
             gap: 14px;
             font-size: 12px;
-            box-shadow: 0 12px 36px rgba(0,0,0,0.65);
-            z-index: 20;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.7);
+            z-index: 30;
         }
         button {
             background: #2563eb;
@@ -177,6 +182,7 @@
             flex-direction: column;
             align-items: center;
             gap: 6px;
+            z-index: 25;
         }
         #subtitle-speaker {
             font-size: 12px;
@@ -184,28 +190,56 @@
             letter-spacing: 1.5px;
             text-transform: uppercase;
             color: #38bdf8;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 3px 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 3px 12px;
             border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         #subtitle-text {
-            font-size: 20px;
+            font-size: 21px;
             font-weight: 600;
             letter-spacing: 0.3px;
             color: #ffffff;
-            text-shadow: 0 2px 12px rgba(0,0,0,0.9);
-            background: rgba(5, 8, 14, 0.7);
-            padding: 10px 22px;
+            text-shadow: 0 2px 14px rgba(0,0,0,0.9);
+            background: rgba(5, 8, 14, 0.78);
+            padding: 10px 24px;
             border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.14);
             backdrop-filter: blur(8px);
             line-height: 1.35;
         }
-        #beat-indicator {
+        #camera-badge {
             font-size: 11px;
-            color: #94a3b8;
+            color: #38bdf8;
             font-weight: 600;
+        }
+        #intervention-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.96);
+            border: 2px solid #ef4444;
+            box-shadow: 0 0 50px rgba(239, 68, 68, 0.4);
+            padding: 22px 26px;
+            border-radius: 14px;
+            width: 90%;
+            max-width: 560px;
+            z-index: 50;
+            backdrop-filter: blur(20px);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .modal-header h4 {
+            color: #ef4444;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            font-weight: 800;
         }
     </style>
 </head>
@@ -215,47 +249,418 @@
 
         <div id="top-bar">
             <div class="overlay-group">
-                <div class="badge badge-live">ALIPS CINEMATIC SCREENPLAY THEATER</div>
-                <div class="badge" id="beat-badge">BEAT: 1 / 12</div>
-                <div class="badge" id="tension-badge">TENSION: 0.55</div>
-                <div class="badge" id="status-badge">STATUS: KAFFEE (7.0) ↔ JESSEP (9.5)</div>
+                <div class="badge badge-live">ALIPS CINEMATIC SCREENPLAY ENGINE</div>
+                <div class="badge" id="beat-badge">BEAT: 1 / 17</div>
+                <div class="badge" id="tension-badge">TENSION: 0.40</div>
+                <div class="badge" id="camera-badge">CAM: APARTMENT ENTRANCE WIDE (1.0x)</div>
             </div>
             <div class="overlay-group">
-                <label for="scene-select" style="font-size:12px; color:#94a3b8; font-weight:600;">PLAY SCREENPLAY:</label>
                 <select id="scene-select">
-                    <option value="a_few_good_men" selected>🎬 A Few Good Men ("Code Red" Courtroom Climax)</option>
-                    <option value="social_network">🎬 The Social Network ("Lawyer Up, Asshole")</option>
-                    <option value="blackwood_silver">🎭 The Blackwood Silver (Forum Theatre Improv)</option>
+                    <option value="pulp_fiction" selected>🎬 Quentin Tarantino: Pulp Fiction (1994) - "Ezekiel 25:17" Apartment Climax</option>
+                    <option value="a_few_good_men">🎬 Aaron Sorkin: A Few Good Men (1992) - "Code Red" Courtroom Climax</option>
+                    <option value="dark_knight">🎬 Christopher Nolan: The Dark Knight (2008) - Batman vs. Joker Interrogation</option>
+                    <option value="whiplash">🎬 Damien Chazelle: Whiplash (2014) - "Not Quite My Tempo" Rehearsal</option>
+                    <option value="social_network">🎬 David Fincher: The Social Network (2010) - "Lawyer Up, Asshole"</option>
+                    <option value="blackwood_silver">🎭 Autonomous Improvisation: The Blackwood Silver (Forum Theatre)</option>
                 </select>
             </div>
         </div>
 
         <div id="screenplay-card">
-            <h3 id="card-title">A Few Good Men (1992)</h3>
-            <p id="card-writer">Written by Aaron Sorkin</p>
-            <p id="card-loc">Location: Guantanamo Bay Court-Martial Courtroom</p>
+            <h3 id="card-title">🎬 Pulp Fiction (1994)</h3>
+            <p id="card-writer">Written by Quentin Tarantino</p>
+            <p id="card-loc">Location: Brett's Dilapidated Apartment - Morning</p>
         </div>
 
         <div id="subtitles">
-            <div id="subtitle-speaker">LT. DANIEL KAFFEE</div>
-            <div id="subtitle-text">"Colonel Jessep, did you order the Code Red?"</div>
-            <div id="beat-indicator">▶ Auto-playing scene with procedural kinematics & voice synthesis</div>
+            <div id="subtitle-speaker">JULES WINNFIELD</div>
+            <div id="subtitle-text">"Hey, kids. How y'all doing? Don't let us interrupt your breakfast."</div>
+        </div>
+
+        <!-- Interactive Augusto Boal Spect-Actor Intervention Modal -->
+        <div id="intervention-modal" style="display:none;">
+            <div class="modal-header">
+                <h4>⚡ AUGUSTO BOAL FORUM THEATRE: SPECT-ACTOR INTERVENTION</h4>
+                <button id="modal-close" style="padding:2px 8px; font-size:12px; background:#475569;">✕</button>
+            </div>
+            <p style="font-size:12px; color:#94a3b8; margin: 10px 0 6px 0;">Freeze the scene and step into the shoes of either character to test an alternate tactic in real-time.</p>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <select id="spectactor-target" style="flex:1;">
+                    <option value="B" selected>Replace Character B (Target / Oppressed)</option>
+                    <option value="A">Replace Character A (Interrogator / Oppressor)</option>
+                </select>
+                <select id="spectactor-tactic" style="flex:1;">
+                    <option value="appease">Tactic: De-escalate & Appease</option>
+                    <option value="confront">Tactic: Direct Confrontation</option>
+                    <option value="whistleblow">Tactic: Pivot / Divine Reason</option>
+                    <option value="stoic">Tactic: Stoic Silence</option>
+                </select>
+            </div>
+            <textarea id="spectactor-input" placeholder="Type your improvised line here..." style="width:100%; height:64px; background:#0b1120; color:#f8fafc; border:1px solid #334155; border-radius:6px; padding:10px; font-size:13px; font-family:inherit; resize:none; outline:none;"></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <div id="intervention-feedback" style="font-size:11px; color:#38bdf8;">Awaiting spect-actor intervention...</div>
+                <button id="btn-submit-intervention" style="background:#22c55e;">🎙 INJECT IMPROV LINE & RUN</button>
+            </div>
         </div>
 
         <div id="controls-panel">
             <button id="btn-play-pause">⏸ PAUSE</button>
             <button id="btn-prev">⏮ PREV</button>
             <button id="btn-next">⏭ NEXT</button>
-            <button id="btn-voice" class="active">🔊 VOICE: ON</button>
+            <button id="btn-foley" class="active">🔊 FOLEY & AUDIO: ON</button>
             <button id="btn-intervene" class="danger">⚡ FORUM STOP! (INTERVENE)</button>
         </div>
     </div>
 
     <script>
         // ---------------------------------------------------------------------
-        // ALIPS SCREENPLAY LIBRARY: Dialogues, Status Levels, Stage Blocking & Props
+        // ZERO-DEPENDENCY WEB AUDIO FOLEY & SYNTHESIZER ENGINE
+        // ---------------------------------------------------------------------
+        class ProceduralFoleyEngine {
+            constructor() {
+                this.ctx = null;
+                this.droneOsc = null;
+                this.droneGain = null;
+                this.enabled = true;
+            }
+
+            init() {
+                if (this.ctx) return;
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioContext();
+
+                // Dynamic Tension Sub-Bass Binaural Drone
+                this.droneOsc = this.ctx.createOscillator();
+                this.droneOsc.type = 'sine';
+                this.droneOsc.frequency.setValueAtTime(48, this.ctx.currentTime); // 48 Hz Low C
+
+                this.droneGain = this.ctx.createGain();
+                this.droneGain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+
+                this.droneOsc.connect(this.droneGain);
+                this.droneGain.connect(this.ctx.destination);
+                this.droneOsc.start();
+            }
+
+            updateTension(tension) {
+                if (!this.ctx || !this.droneGain) return;
+                // Gain swells and frequency subtly rises as tension climbs
+                const targetGain = this.enabled ? 0.02 + (tension * 0.08) : 0;
+                this.droneGain.gain.setTargetAtTime(targetGain, this.ctx.currentTime, 0.1);
+                this.droneOsc.frequency.setTargetAtTime(45 + (tension * 15), this.ctx.currentTime, 0.2);
+            }
+
+            playFootstep(surface = 'wood') {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                // Thud Oscillator (Low impact)
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(95, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.08);
+
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.09);
+            }
+
+            playGavelStrike() {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                // Dual impact frequencies
+                [220, 580].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+                    osc.frequency.exponentialRampToValueAtTime(freq * 0.4, now + 0.25);
+
+                    gain.gain.setValueAtTime(0.35 / (idx + 1), now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.26);
+                });
+            }
+
+            playTableSlam() {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.exponentialRampToValueAtTime(20, now + 0.35);
+
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.36);
+            }
+
+            playGunshot() {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                // 1. Heavy low-frequency punch transient
+                const osc = this.ctx.createOscillator();
+                const oscGain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(28, now + 0.45);
+                oscGain.gain.setValueAtTime(0.8, now);
+                oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                osc.connect(oscGain);
+                oscGain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.46);
+
+                // 2. High-gain shaped noise explosion burst
+                const bufferSize = this.ctx.sampleRate * 0.6;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.12));
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(6000, now);
+                filter.frequency.exponentialRampToValueAtTime(150, now + 0.55);
+
+                const noiseGain = this.ctx.createGain();
+                noiseGain.gain.setValueAtTime(0.9, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+                noise.connect(filter);
+                filter.connect(noiseGain);
+                noiseGain.connect(this.ctx.destination);
+                noise.start(now);
+            }
+
+            playBurgerCrunch() {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                // High frequency crackle
+                const bufferSize = this.ctx.sampleRate * 0.15;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * (i % 200 < 50 ? 1 : 0);
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 2400;
+                filter.Q.value = 3.0;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(now);
+            }
+
+            playStrawSlurp() {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.linearRampToValueAtTime(740, now + 0.28);
+                osc.frequency.linearRampToValueAtTime(410, now + 0.45);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.46);
+            }
+
+            playBriefcaseClick() {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                [0, 0.08].forEach(delay => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(1400, now + delay);
+                    osc.frequency.exponentialRampToValueAtTime(400, now + delay + 0.03);
+                    gain.gain.setValueAtTime(0.25, now + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.03);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.04);
+                });
+            }
+
+            playDrumRimshot() {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(340, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.12);
+                gain.gain.setValueAtTime(0.45, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.13);
+            }
+
+            playCymbalHit() {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                const bufferSize = this.ctx.sampleRate * 0.7;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.18));
+                }
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 5500;
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(now);
+            }
+
+            playSlap() {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(500, now);
+                osc.frequency.exponentialRampToValueAtTime(90, now + 0.08);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.09);
+            }
+        }
+        const foley = new ProceduralFoleyEngine();
+
+        // ---------------------------------------------------------------------
+        // 2D PROCEDURAL CINEMATIC CAMERA SYSTEM
+        // ---------------------------------------------------------------------
+        class ProceduralCamera2D {
+            constructor() {
+                this.x = 0;
+                this.y = 0;
+                this.targetX = 0;
+                this.targetY = 0;
+                this.zoom = 1.0;
+                this.targetZoom = 1.0;
+                this.shakeAmount = 0.0;
+            }
+
+            setShot(targetX, targetY, zoom, label = "") {
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.targetZoom = zoom;
+                if (label) {
+                    document.getElementById('camera-badge').textContent = `CAM: ${label} (${zoom.toFixed(1)}x)`;
+                }
+            }
+
+            addShake(amount) {
+                this.shakeAmount = Math.max(this.shakeAmount, amount);
+            }
+
+            update(dt = 0.016) {
+                // Smooth camera panning & zooming interpolation (Lerp)
+                this.x += (this.targetX - this.x) * 0.08;
+                this.y += (this.targetY - this.y) * 0.08;
+                this.zoom += (this.targetZoom - this.zoom) * 0.06;
+
+                // Decay shake
+                this.shakeAmount *= 0.88;
+            }
+
+            apply(ctx, originX, originY) {
+                const shakeX = (Math.random() - 0.5) * this.shakeAmount * 12;
+                const shakeY = (Math.random() - 0.5) * this.shakeAmount * 12;
+
+                ctx.translate(originX + shakeX, originY + shakeY);
+                ctx.scale(this.zoom, this.zoom);
+                ctx.translate(-originX - this.x, -originY - this.y);
+            }
+        }
+        const camera = new ProceduralCamera2D();
+
+        // ---------------------------------------------------------------------
+        // SCREENPLAY LIBRARY: Dialogues, Status Levels, Blocking & Camera Cuts
         // ---------------------------------------------------------------------
         const SCREENPLAYS = {
+            pulp_fiction: {
+                title: "Pulp Fiction (1994)",
+                writer: "Quentin Tarantino",
+                location: "Brett's Dilapidated Apartment - Morning",
+                propType: "APARTMENT_KAHUNA",
+                charA: { name: "JULES WINNFIELD", color: "#fbbf24", role: "Righteous Hitman (Wrath & Scripture)", pitch: 0.92, rate: 1.02 },
+                charB: { name: "BRETT", color: "#94a3b8", role: "Terrified Target (Submissive Status)", pitch: 1.30, rate: 1.18 },
+                beats: [
+                    { id: 1, speaker: "A", dialogue: "Hey, kids. How y'all doing? Don't let us interrupt your breakfast.", statusA: 8.5, statusB: 3.0, tension: 0.40, targetA: 0.32, targetB: 0.72, gestureA: "CALM_STRIDE", gestureB: "TREMBLING_HANDS", camZoom: 1.0, camLabel: "APARTMENT ENTRANCE WIDE" },
+                    { id: 2, speaker: "B", dialogue: "Jules, look... it's in the cupboard. The case is right there!", statusA: 8.5, statusB: 2.5, tension: 0.50, targetA: 0.36, targetB: 0.72, gestureA: "INSPECT_BURGER", gestureB: "PLEADING_TERROR", camZoom: 1.15, camLabel: "BRETT PANIC CLOSEUP" },
+                    { id: 3, speaker: "A", dialogue: "Whatcha got there? Hamburgers? Big Kahuna Burger. That's that Hawaiian burger joint, right?", statusA: 9.0, statusB: 2.0, tension: 0.58, targetA: 0.46, targetB: 0.72, gestureA: "BURGER_BITE", gestureB: "SWALLOW_HARD", camZoom: 1.3, camLabel: "KAHUNA BURGER PUSH-IN" },
+                    { id: 4, speaker: "B", dialogue: "Yeah. It's... it's pretty good.", statusA: 9.0, statusB: 2.0, tension: 0.62, targetA: 0.46, targetB: 0.72, gestureA: "BURGER_BITE", gestureB: "SWALLOW_HARD", camZoom: 1.35, camLabel: "BRETT PROFILE" },
+                    { id: 5, speaker: "A", dialogue: "Mind if I have some of yours? Mmm-hmm! This is a tasty burger! Vincent, you ever have a Big Kahuna Burger?", statusA: 9.2, statusB: 1.8, tension: 0.68, targetA: 0.50, targetB: 0.70, gestureA: "BURGER_BITE", gestureB: "TREMBLING_HANDS", camZoom: 1.45, camLabel: "JULES TASTY BURGER SMILE" },
+                    { id: 6, speaker: "A", dialogue: "Mind if I have some of your tasty beverage to wash this down? Mmm... Sprite.", statusA: 9.4, statusB: 1.5, tension: 0.75, targetA: 0.52, targetB: 0.70, gestureA: "STRAW_SLURP", gestureB: "TREMBLING_HANDS", camZoom: 1.5, camLabel: "STRAW SLURP TENSION" },
+                    { id: 7, speaker: "A", dialogue: "You know why we're here. Why don't you tell me where our boss's property is?", statusA: 9.6, statusB: 1.5, tension: 0.82, targetA: 0.54, targetB: 0.68, gestureA: "ICE_COLD_STARE", gestureB: "PLEADING_TERROR", camZoom: 1.6, camLabel: "THE SHIFT TO TERROR" },
+                    { id: 8, speaker: "B", dialogue: "It's in the cupboard! I swear, Marcellus Wallace is gonna get every cent back!", statusA: 9.6, statusB: 2.0, tension: 0.86, targetA: 0.54, targetB: 0.68, gestureA: "ICE_COLD_STARE", gestureB: "PLEADING_TERROR", camZoom: 1.65, camLabel: "DESPERATE PLEA" },
+                    { id: 9, speaker: "A", dialogue: "Describe what Marcellus Wallace looks like!", statusA: 9.8, statusB: 1.5, tension: 0.90, targetA: 0.58, targetB: 0.68, gestureA: "DRAW_PISTOL", gestureB: "FLINCH_TERROR", camZoom: 1.75, camLabel: "PISTOL AIM POINT", shake: 0.4 },
+                    { id: 10, speaker: "B", dialogue: "What?!", statusA: 9.8, statusB: 1.2, tension: 0.94, targetA: 0.58, targetB: 0.68, gestureA: "DRAW_PISTOL", gestureB: "FLINCH_TERROR", camZoom: 1.8, camLabel: "BRETT WHAT" },
+                    { id: 11, speaker: "A", dialogue: "Say 'what' again! Say 'what' again, I dare you, I double dare you motherfucker, say what one more goddamn time!", statusA: 10.0, statusB: 1.0, tension: 0.98, targetA: 0.60, targetB: 0.68, gestureA: "ROAR_AIM", gestureB: "FLINCH_TERROR", camZoom: 1.9, camLabel: "DOUBLE DARE ROAR", shake: 0.8 },
+                    { id: 12, speaker: "B", dialogue: "He's black! He's bald! And he don't like to be messed with by anybody except Mrs. Wallace!", statusA: 9.8, statusB: 2.0, tension: 0.95, targetA: 0.58, targetB: 0.68, gestureA: "ROAR_AIM", gestureB: "PLEADING_TERROR", camZoom: 1.7, camLabel: "CONFESSION GASP" },
+                    { id: 13, speaker: "A", dialogue: "There's a passage I got memorized. Ezekiel 25:17.", statusA: 10.0, statusB: 1.0, tension: 0.98, targetA: 0.54, targetB: 0.68, gestureA: "EZEKIEL_POSTURE", gestureB: "FLINCH_TERROR", camZoom: 1.85, camLabel: "PROPHETIC ORATION" },
+                    { id: 14, speaker: "A", dialogue: "The path of the righteous man is beset on all sides by the iniquities of the selfish and the tyranny of evil men.", statusA: 10.0, statusB: 1.0, tension: 0.99, targetA: 0.54, targetB: 0.68, gestureA: "EZEKIEL_MONOLOGUE_1", gestureB: "FLINCH_TERROR", camZoom: 1.9, camLabel: "EZEKIEL CHANT 1" },
+                    { id: 15, speaker: "A", dialogue: "Blessed is he who, in the name of charity and good will, shepherds the weak through the valley of darkness.", statusA: 10.0, statusB: 1.0, tension: 0.99, targetA: 0.56, targetB: 0.68, gestureA: "EZEKIEL_MONOLOGUE_2", gestureB: "FLINCH_TERROR", camZoom: 1.95, camLabel: "EZEKIEL CHANT 2" },
+                    { id: 16, speaker: "A", dialogue: "And I will strike down upon thee with great vengeance and furious anger those who attempt to poison and destroy my brothers!", statusA: 10.0, statusB: 0.8, tension: 1.0, targetA: 0.58, targetB: 0.68, gestureA: "ROAR_EZEKIEL_CLIMAX", gestureB: "FLINCH_TERROR", camZoom: 2.0, camLabel: "FURIOUS ANGER CRESCENDO", shake: 1.0 },
+                    { id: 17, speaker: "A", dialogue: "AND YOU WILL KNOW MY NAME IS THE LORD WHEN I LAY MY VENGEANCE UPON THEE!", statusA: 10.0, statusB: 0.5, tension: 1.0, targetA: 0.60, targetB: 0.68, gestureA: "GUNSHOT_EXECUTION", gestureB: "FLINCH_TERROR", camZoom: 2.1, camLabel: "THE FATAL EXECUTION", shake: 1.4 }
+                ]
+            },
+            whiplash: {
+                title: "Whiplash (2014)",
+                writer: "Damien Chazelle",
+                location: "Studio Band Rehearsal Room - Nassau",
+                propType: "BAND_STUDIO",
+                charA: { name: "TERENCE FLETCHER", color: "#ef4444", role: "Symphonic Studio Conductor", pitch: 0.85, rate: 1.05 },
+                charB: { name: "ANDREW NEIMAN", color: "#38bdf8", role: "Obsessed Drummer", pitch: 1.20, rate: 1.15 },
+                beats: [
+                    { id: 1, speaker: "A", dialogue: "Caravan. Bar one-fifteen. Five, six, and...", statusA: 9.0, statusB: 5.0, tension: 0.45, targetA: 0.36, targetB: 0.72, gestureA: "CONDUCTING_HANDS", gestureB: "TENSE_DRUMSTICKS", camZoom: 1.0, camLabel: "STUDIO WIDE" },
+                    { id: 2, speaker: "A", dialogue: "Stop. Neiman, you're rushing.", statusA: 9.5, statusB: 4.5, tension: 0.65, targetA: 0.42, targetB: 0.72, gestureA: "RAISE_FIST_HALT", gestureB: "TENSE_DRUMSTICKS", camZoom: 1.25, camLabel: "HALT TENSION", shake: 0.3 },
+                    { id: 3, speaker: "B", dialogue: "Sorry, Mr. Fletcher. Let me count it off.", statusA: 9.2, statusB: 3.8, tension: 0.70, targetA: 0.45, targetB: 0.72, gestureA: "RAISE_FIST_HALT", gestureB: "TENSE_DRUMSTICKS", camZoom: 1.35, camLabel: "DRUMMER ANXIETY" },
+                    { id: 4, speaker: "A", dialogue: "Not quite my tempo. Were you rushing or were you dragging?!", statusA: 10.0, statusB: 3.0, tension: 0.88, targetA: 0.58, targetB: 0.72, gestureA: "LEAN_INTO_FACE", gestureB: "TREMBLING_HANDS", camZoom: 1.7, camLabel: "FACE-TO-FACE INTIMIDATION", shake: 0.6 },
+                    { id: 5, speaker: "B", dialogue: "I... I don't know...", statusA: 10.0, statusB: 1.8, tension: 0.94, targetA: 0.58, targetB: 0.72, gestureA: "LEAN_INTO_FACE", gestureB: "TREMBLING_HANDS", camZoom: 1.85, camLabel: "PSYCHOLOGICAL BREAKDOWN" },
+                    { id: 6, speaker: "A", dialogue: "There are no two words in the English language more harmful than 'good job.' Start again!", statusA: 10.0, statusB: 2.2, tension: 0.98, targetA: 0.50, targetB: 0.72, gestureA: "POINT", gestureB: "TENSE_DRUMSTICKS", camZoom: 1.6, camLabel: "FLETCHER PHILOSOPHY", shake: 0.8 }
+                ]
+            },
             a_few_good_men: {
                 title: "A Few Good Men (1992)",
                 writer: "Aaron Sorkin",
@@ -264,18 +669,34 @@
                 charA: { name: "LT. DANIEL KAFFEE", color: "#38bdf8", role: "Prosecuting Defense Counsel", pitch: 1.15, rate: 1.05 },
                 charB: { name: "COL. NATHAN R. JESSEP", color: "#f87171", role: "Guantanamo Base Commander", pitch: 0.82, rate: 0.95 },
                 beats: [
-                    { id: 1, speaker: "A", dialogue: "Colonel Jessep, did you order the Code Red?", statusA: 7.0, statusB: 9.5, tension: 0.55, targetA: 0.32, targetB: 0.78, gestureA: "POINT", gestureB: "SMUG" },
-                    { id: 2, speaker: "B", dialogue: "You don't have to answer that question!", statusA: 7.0, statusB: 9.8, tension: 0.62, targetA: 0.32, targetB: 0.78, gestureA: "STILL", gestureB: "ROAR" },
-                    { id: 3, speaker: "A", dialogue: "Your Honor, I have the right to question the witness on this issue!", statusA: 7.8, statusB: 9.5, tension: 0.70, targetA: 0.44, targetB: 0.78, gestureA: "APPROACH", gestureB: "GLARE" },
-                    { id: 4, speaker: "B", dialogue: "I'll answer the question. You want answers?", statusA: 8.0, statusB: 9.5, tension: 0.75, targetA: 0.48, targetB: 0.74, gestureA: "GROUNDED", gestureB: "LEAN_FORWARD" },
-                    { id: 5, speaker: "A", dialogue: "I think I'm entitled to them.", statusA: 8.5, statusB: 9.2, tension: 0.80, targetA: 0.52, targetB: 0.72, gestureA: "ASSERTIVE", gestureB: "INTIMIDATE" },
-                    { id: 6, speaker: "B", dialogue: "You want answers?!", statusA: 8.5, statusB: 9.8, tension: 0.88, targetA: 0.52, targetB: 0.70, gestureA: "STAND_FIRM", gestureB: "STEP_DOWN" },
-                    { id: 7, speaker: "A", dialogue: "I WANT THE TRUTH!", statusA: 9.6, statusB: 9.8, tension: 0.96, targetA: 0.56, targetB: 0.70, gestureA: "EXPLODE", gestureB: "TENSE" },
-                    { id: 8, speaker: "B", dialogue: "YOU CAN'T HANDLE THE TRUTH!", statusA: 8.2, statusB: 10.0, tension: 1.00, targetA: 0.54, targetB: 0.68, gestureA: "BLOWN_BACK", gestureB: "MONUMENTAL" },
-                    { id: 9, speaker: "B", dialogue: "Son, we live in a world that has walls, and those walls have to be guarded by men with guns. Who's gonna do it? You?", statusA: 7.5, statusB: 10.0, tension: 0.92, targetA: 0.50, targetB: 0.66, gestureA: "LISTENING", gestureB: "PACE_MONOLOGUE" },
-                    { id: 10, speaker: "A", dialogue: "Did you order the Code Red?!", statusA: 9.9, statusB: 8.5, tension: 0.98, targetA: 0.58, targetB: 0.66, gestureA: "LETHAL_POINT", gestureB: "CORNERED" },
-                    { id: 11, speaker: "B", dialogue: "YOU'RE GODDAMN RIGHT I DID!", statusA: 10.0, statusB: 6.0, tension: 1.00, targetA: 0.58, targetB: 0.66, gestureA: "VICTORIOUS_STILL", gestureB: "FATAL_CONFESSION" },
-                    { id: 12, speaker: "A", dialogue: "Your Honor, these are the Marine MPs. Have the witness placed under arrest.", statusA: 10.0, statusB: 2.0, tension: 0.40, targetA: 0.38, targetB: 0.66, gestureA: "STEP_BACK", gestureB: "SHATTERED_COLLAPSE" }
+                    { id: 1, speaker: "A", dialogue: "Colonel Jessep, did you order the Code Red?", statusA: 7.0, statusB: 9.5, tension: 0.55, targetA: 0.32, targetB: 0.78, gestureA: "POINT", gestureB: "SMUG", camZoom: 1.0, camLabel: "ESTABLISHING TWO-SHOT" },
+                    { id: 2, speaker: "B", dialogue: "You don't have to answer that question!", statusA: 7.0, statusB: 9.8, tension: 0.62, targetA: 0.32, targetB: 0.78, gestureA: "STILL", gestureB: "ROAR", camZoom: 1.1, camLabel: "MEDIUM ON JESSEP", shake: 0.3 },
+                    { id: 3, speaker: "A", dialogue: "Your Honor, I have the right to question the witness on this issue!", statusA: 7.8, statusB: 9.5, tension: 0.70, targetA: 0.44, targetB: 0.78, gestureA: "APPROACH", gestureB: "GLARE", camZoom: 1.2, camLabel: "PUSH-IN ON COUNSEL" },
+                    { id: 4, speaker: "B", dialogue: "I'll answer the question. You want answers?", statusA: 8.0, statusB: 9.5, tension: 0.75, targetA: 0.48, targetB: 0.74, gestureA: "GROUNDED", gestureB: "LEAN_FORWARD", camZoom: 1.3, camLabel: "TIGHT PROFILE TWO-SHOT" },
+                    { id: 5, speaker: "A", dialogue: "I think I'm entitled to them.", statusA: 8.5, statusB: 9.2, tension: 0.80, targetA: 0.52, targetB: 0.72, gestureA: "ASSERTIVE", gestureB: "INTIMIDATE", camZoom: 1.35, camLabel: "CONFRONTATION PROXEMIC" },
+                    { id: 6, speaker: "B", dialogue: "You want answers?!", statusA: 8.5, statusB: 9.8, tension: 0.88, targetA: 0.52, targetB: 0.70, gestureA: "STAND_FIRM", gestureB: "STEP_DOWN", camZoom: 1.45, camLabel: "STEP-DOWN TENSION" },
+                    { id: 7, speaker: "A", dialogue: "I WANT THE TRUTH!", statusA: 9.6, statusB: 9.8, tension: 0.96, targetA: 0.56, targetB: 0.70, gestureA: "EXPLODE", gestureB: "TENSE", camZoom: 1.6, camLabel: "CHOKE-POINT CLOSEUP", shake: 0.5 },
+                    { id: 8, speaker: "B", dialogue: "YOU CAN'T HANDLE THE TRUTH!", statusA: 8.2, statusB: 10.0, tension: 1.00, targetA: 0.54, targetB: 0.68, gestureA: "BLOWN_BACK", gestureB: "MONUMENTAL", camZoom: 1.8, camLabel: "CLIMAX EXTREME CLOSEUP", shake: 0.9 },
+                    { id: 9, speaker: "B", dialogue: "Son, we live in a world that has walls, and those walls have to be guarded by men with guns. Who's gonna do it? You?", statusA: 7.5, statusB: 10.0, tension: 0.92, targetA: 0.50, targetB: 0.66, gestureA: "LISTENING", gestureB: "PACE_MONOLOGUE", camZoom: 1.35, camLabel: "JESSEP PACING TRUCK SHOT" },
+                    { id: 10, speaker: "A", dialogue: "Did you order the Code Red?!", statusA: 9.9, statusB: 8.5, tension: 0.98, targetA: 0.58, targetB: 0.66, gestureA: "LETHAL_POINT", gestureB: "CORNERED", camZoom: 1.7, camLabel: "FATAL INTERROGATION CLOSEUP" },
+                    { id: 11, speaker: "B", dialogue: "YOU'RE GODDAMN RIGHT I DID!", statusA: 10.0, statusB: 6.0, tension: 1.00, targetA: 0.58, targetB: 0.66, gestureA: "VICTORIOUS_STILL", gestureB: "FATAL_CONFESSION", camZoom: 1.9, camLabel: "CONFESSION IMPACT", shake: 1.0 },
+                    { id: 12, speaker: "A", dialogue: "Your Honor, these are the Marine MPs. Have the witness placed under arrest.", statusA: 10.0, statusB: 2.0, tension: 0.40, targetA: 0.38, targetB: 0.66, gestureA: "STEP_BACK", gestureB: "SHATTERED_COLLAPSE", camZoom: 1.1, camLabel: "WIDE CATHARSIS SHOT" }
+                ]
+            },
+            dark_knight: {
+                title: "The Dark Knight (2008)",
+                writer: "Jonathan & Christopher Nolan",
+                location: "Gotham Central Police Interrogation Room",
+                propType: "INTERROGATION",
+                charA: { name: "BATMAN", color: "#38bdf8", role: "Vigilante (Relentless Force)", pitch: 0.75, rate: 0.95 },
+                charB: { name: "THE JOKER", color: "#a855f7", role: "Agent of Chaos (Unshakable Status)", pitch: 1.25, rate: 1.15 },
+                beats: [
+                    { id: 1, speaker: "A", dialogue: "Where are they?!", statusA: 8.5, statusB: 9.5, tension: 0.70, targetA: 0.45, targetB: 0.68, gestureA: "SLAM_TABLE", gestureB: "SMUG", camZoom: 1.3, camLabel: "TABLE SLAM IMPACT", shake: 0.6 },
+                    { id: 2, speaker: "B", dialogue: "You have nothing, nothing to threaten me with. Nothing to do with all your strength.", statusA: 7.5, statusB: 10.0, tension: 0.85, targetA: 0.45, targetB: 0.68, gestureA: "STILL", gestureB: "LAUGH_LEAN", camZoom: 1.5, camLabel: "JOKER PSYCHOLOGICAL CLOSEUP" },
+                    { id: 3, speaker: "A", dialogue: "Where is Rachel?!", statusA: 9.0, statusB: 9.5, tension: 0.92, targetA: 0.55, targetB: 0.68, gestureA: "GRAB_COLLAR", gestureB: "LEAN_FORWARD", camZoom: 1.7, camLabel: "PHYSICAL VIOLENCE TIGHT SHOT", shake: 0.5 },
+                    { id: 4, speaker: "B", dialogue: "Killing is a choice. You have to choose between one life or the other. Your friend the DA, or his blushing bride-to-be.", statusA: 6.0, statusB: 10.0, tension: 0.98, targetA: 0.52, targetB: 0.68, gestureA: "SHOCKED_FREEZE", gestureB: "DELIGHTED_CHAOS", camZoom: 1.8, camLabel: "THE DILEMMA REVEAL", shake: 0.4 },
+                    { id: 5, speaker: "A", dialogue: "WHERE ARE THEY?!", statusA: 9.5, statusB: 9.8, tension: 1.00, targetA: 0.58, targetB: 0.68, gestureA: "ROAR", gestureB: "LAUGH_CONVULSION", camZoom: 1.9, camLabel: "CLIMAX SHOUT", shake: 0.8 },
+                    { id: 6, speaker: "B", dialogue: "Which one are you going after? He's at 250 52nd Street, and she's on Avenue X.", statusA: 8.0, statusB: 10.0, tension: 0.85, targetA: 0.35, targetB: 0.68, gestureA: "DASH_EXIT", gestureB: "CACKLE_SOLITARY", camZoom: 1.2, camLabel: "BATMAN RUNAWAY PULLOUT" }
                 ]
             },
             social_network: {
@@ -286,12 +707,12 @@
                 charA: { name: "EDUARDO SAVERIN", color: "#f97316", role: "Cofounder & CFO (Betrayed)", pitch: 1.05, rate: 1.15 },
                 charB: { name: "MARK ZUCKERBERG", color: "#38bdf8", role: "Founder & CEO (Detached)", pitch: 0.90, rate: 1.20 },
                 beats: [
-                    { id: 1, speaker: "A", dialogue: "Mark! You set me up.", statusA: 7.0, statusB: 7.0, tension: 0.60, targetA: 0.30, targetB: 0.72, gestureA: "MARCH_IN", gestureB: "TYPING" },
-                    { id: 2, speaker: "B", dialogue: "A million dollars isn't cool. You know what's cool? A billion dollars.", statusA: 6.5, statusB: 8.5, tension: 0.70, targetA: 0.38, targetB: 0.72, gestureA: "FUME", gestureB: "SLIGHT_TILT" },
-                    { id: 3, speaker: "A", dialogue: "You issued twenty-four million new shares of stock... and diluted my shares down to 0.03 percent!", statusA: 8.5, statusB: 7.5, tension: 0.85, targetA: 0.50, targetB: 0.70, gestureA: "SLAM_TABLE", gestureB: "DEFENSIVE" },
-                    { id: 4, speaker: "B", dialogue: "You signed the papers, Eduardo.", statusA: 8.0, statusB: 8.5, tension: 0.88, targetA: 0.50, targetB: 0.70, gestureA: "STARE", gestureB: "MONOTONE" },
-                    { id: 5, speaker: "A", dialogue: "My name was on the masthead! I was your only friend! You had ONE friend!", statusA: 9.8, statusB: 4.5, tension: 0.98, targetA: 0.58, targetB: 0.70, gestureA: "SHATTER_LAPTOP", gestureB: "FLINCH" },
-                    { id: 6, speaker: "A", dialogue: "You better lawyer up, asshole. Because I'm not coming back for thirty percent. I'm coming back for everything.", statusA: 10.0, statusB: 3.0, tension: 0.90, targetA: 0.54, targetB: 0.74, gestureA: "POINT_EXIT", gestureB: "STILL" }
+                    { id: 1, speaker: "A", dialogue: "Mark! You set me up.", statusA: 7.0, statusB: 7.0, tension: 0.60, targetA: 0.30, targetB: 0.72, gestureA: "MARCH_IN", gestureB: "TYPING", camZoom: 1.0, camLabel: "ENTRANCE WIDE" },
+                    { id: 2, speaker: "B", dialogue: "A million dollars isn't cool. You know what's cool? A billion dollars.", statusA: 6.5, statusB: 8.5, tension: 0.70, targetA: 0.38, targetB: 0.72, gestureA: "FUME", gestureB: "SLIGHT_TILT", camZoom: 1.25, camLabel: "ZUCKERBERG MONOTONE TIGHT" },
+                    { id: 3, speaker: "A", dialogue: "You issued twenty-four million new shares of stock... and diluted my shares down to 0.03 percent!", statusA: 8.5, statusB: 7.5, tension: 0.85, targetA: 0.50, targetB: 0.70, gestureA: "SLAM_TABLE", gestureB: "DEFENSIVE", camZoom: 1.45, camLabel: "DESK CONFRONTATION", shake: 0.4 },
+                    { id: 4, speaker: "B", dialogue: "You signed the papers, Eduardo.", statusA: 8.0, statusB: 8.5, tension: 0.88, targetA: 0.50, targetB: 0.70, gestureA: "STARE", gestureB: "MONOTONE", camZoom: 1.5, camLabel: "EYE CONTACT LOCK" },
+                    { id: 5, speaker: "A", dialogue: "My name was on the masthead! I was your only friend! You had ONE friend!", statusA: 9.8, statusB: 4.5, tension: 0.98, targetA: 0.58, targetB: 0.70, gestureA: "SHATTER_LAPTOP", gestureB: "FLINCH", camZoom: 1.75, camLabel: "LAPTOP SMASH IMPACT", shake: 0.8 },
+                    { id: 6, speaker: "A", dialogue: "You better lawyer up, asshole. Because I'm not coming back for thirty percent. I'm coming back for everything.", statusA: 10.0, statusB: 3.0, tension: 0.90, targetA: 0.54, targetB: 0.74, gestureA: "POINT_EXIT", gestureB: "STILL", camZoom: 1.3, camLabel: "EXIT PULLBACK" }
                 ]
             },
             blackwood_silver: {
@@ -302,16 +723,16 @@
                 charA: { name: "MR. STERLING", color: "#38bdf8", role: "Head Butler (Systemic Oppressor)", pitch: 0.90, rate: 0.95 },
                 charB: { name: "THOMAS", color: "#fb923c", role: "Under-Footman (Whistleblower)", pitch: 1.10, rate: 1.05 },
                 beats: [
-                    { id: 1, speaker: "A", dialogue: "The dessert forks lie precisely one inch from the plate rim, Thomas. We do not tilt them for the morning breeze.", statusA: 8.5, statusB: 2.0, tension: 0.35, targetA: 0.35, targetB: 0.72, gestureA: "POLISH_FORK", gestureB: "NERVOUS" },
-                    { id: 2, speaker: "B", dialogue: "The Grand Duke will not be dining tonight, sir. I saw the Duchess empty the green vial into his gravy.", statusA: 6.2, statusB: 6.0, tension: 0.75, targetA: 0.38, targetB: 0.65, gestureA: "SHOCK", gestureB: "STAND_TALL" },
-                    { id: 3, speaker: "A", dialogue: "Silence! Give me that spoon before the watchman arrives!", statusA: 7.5, statusB: 5.5, tension: 0.88, targetA: 0.45, targetB: 0.65, gestureA: "LUNGE", gestureB: "RETREAT" },
-                    { id: 4, speaker: "B", dialogue: "No, sir. Look at your boots—the green flour is all over your shoes.", statusA: 2.5, statusB: 9.5, tension: 0.95, targetA: 0.45, targetB: 0.58, gestureA: "FALL_KNEE", gestureB: "TRIUMPH" }
+                    { id: 1, speaker: "A", dialogue: "The dessert forks lie precisely one inch from the plate rim, Thomas. We do not tilt them for the morning breeze.", statusA: 8.5, statusB: 2.0, tension: 0.35, targetA: 0.35, targetB: 0.72, gestureA: "POLISH_FORK", gestureB: "NERVOUS", camZoom: 1.0, camLabel: "MANOR WIDE" },
+                    { id: 2, speaker: "B", dialogue: "The Grand Duke will not be dining tonight, sir. I saw the Duchess empty the green vial into his gravy.", statusA: 6.2, statusB: 6.0, tension: 0.75, targetA: 0.38, targetB: 0.65, gestureA: "SHOCK", gestureB: "STAND_TALL", camZoom: 1.3, camLabel: "REVELATION TIGHT" },
+                    { id: 3, speaker: "A", dialogue: "Silence! Give me that spoon before the watchman arrives!", statusA: 7.5, statusB: 5.5, tension: 0.88, targetA: 0.45, targetB: 0.65, gestureA: "LUNGE", gestureB: "RETREAT", camZoom: 1.5, camLabel: "CORNERED STRUGGLE", shake: 0.3 },
+                    { id: 4, speaker: "B", dialogue: "No, sir. Look at your boots—the green flour is all over your shoes.", statusA: 2.5, statusB: 9.5, tension: 0.95, targetA: 0.45, targetB: 0.58, gestureA: "FALL_KNEE", gestureB: "TRIUMPH", camZoom: 1.6, camLabel: "REVERSAL IMPACT" }
                 ]
             }
         };
 
         // ---------------------------------------------------------------------
-        // CANVAS & 2-BONE INVERSE KINEMATICS ENGINE
+        // 2-BONE ANALYTICAL INVERSE KINEMATICS ENGINE
         // ---------------------------------------------------------------------
         const canvas = document.getElementById('stage');
         const ctx = canvas.getContext('2d');
@@ -370,6 +791,7 @@
                 this.spineAngle = 0;
                 this.headAngle = 0;
                 this.isWalking = false;
+                this.lastFootstepPhase = 0;
 
                 this.lFootX = defaultX - 15;
                 this.lFootY = groundY;
@@ -395,6 +817,13 @@
                         this.rootX += this.vx;
                     }
                     this.walkPhase += (Math.abs(this.vx) / 36) * Math.PI * 2;
+
+                    // Trigger procedural footstep Foley on plant cycle
+                    const currentPlant = Math.floor(this.walkPhase / Math.PI);
+                    if (currentPlant !== this.lastFootstepPhase) {
+                        this.lastFootstepPhase = currentPlant;
+                        foley.playFootstep();
+                    }
                 } else {
                     this.isWalking = false;
                     this.vx = 0;
@@ -498,7 +927,7 @@
                 ctx.lineTo(rShoulderX, shoulderY);
                 ctx.stroke();
 
-                // Gestural Arm Vectors based on Screenplay Beats
+                // Gestural Arm Vectors based on Screenplay Beats & Props
                 let lHandX = lShoulderX - 20, lHandY = shoulderY + 45;
                 let rHandX = rShoulderX + (this.facing * 25), rHandY = shoulderY + 40;
 
@@ -506,31 +935,140 @@
                 lHandX -= armSwing;
                 rHandX += armSwing;
 
+                let holdsGun = false;
+                let holdsBurger = false;
+                let holdsCup = false;
+                let holdsDrumsticks = false;
+
                 if (this.currentGesture === "POINT" || this.currentGesture === "LETHAL_POINT") {
                     rHandX = rShoulderX + (this.facing * 55);
                     rHandY = shoulderY + 10;
                 } else if (this.currentGesture === "EXPLODE" || this.currentGesture === "ROAR") {
                     lHandX = lShoulderX - 35; lHandY = shoulderY - 15;
                     rHandX = rShoulderX + (this.facing * 45); rHandY = shoulderY - 15;
-                } else if (this.currentGesture === "LEAN_FORWARD") {
-                    rHandX = rShoulderX + (this.facing * 40); rHandY = shoulderY + 30;
+                } else if (this.currentGesture === "LEAN_FORWARD" || this.currentGesture === "LAUGH_LEAN") {
+                    rHandX = rShoulderX + (this.facing * 40); rHandY = shoulderY + 28;
                 } else if (this.currentGesture === "SHATTER_LAPTOP" || this.currentGesture === "SLAM_TABLE") {
-                    rHandX = rShoulderX + (this.facing * 30); rHandY = shoulderY + 60;
+                    rHandX = rShoulderX + (this.facing * 28); rHandY = shoulderY + 58;
+                } else if (this.currentGesture === "DRAW_PISTOL" || this.currentGesture === "ROAR_AIM" || this.currentGesture === "GUNSHOT_EXECUTION") {
+                    rHandX = rShoulderX + (this.facing * 58);
+                    rHandY = shoulderY + 6;
+                    holdsGun = true;
+                } else if (this.currentGesture === "BURGER_BITE") {
+                    rHandX = headCenterX + (this.facing * 10);
+                    rHandY = headCenterY + 12;
+                    holdsBurger = true;
+                } else if (this.currentGesture === "STRAW_SLURP") {
+                    rHandX = headCenterX + (this.facing * 12);
+                    rHandY = headCenterY + 16;
+                    holdsCup = true;
+                } else if (this.currentGesture === "EZEKIEL_POSTURE" || this.currentGesture === "EZEKIEL_MONOLOGUE_1" || this.currentGesture === "EZEKIEL_MONOLOGUE_2" || this.currentGesture === "ROAR_EZEKIEL_CLIMAX") {
+                    lHandX = lShoulderX - 25; lHandY = shoulderY - 32;
+                    rHandX = rShoulderX + (this.facing * 35); rHandY = shoulderY - 32;
+                    if (this.currentGesture === "ROAR_EZEKIEL_CLIMAX") holdsGun = true;
+                } else if (this.currentGesture === "TREMBLING_HANDS" || this.currentGesture === "FLINCH_TERROR" || this.currentGesture === "PLEADING_TERROR") {
+                    const tremble = Math.sin(time * 24) * 4;
+                    lHandX = headCenterX - 12 + tremble; lHandY = headCenterY + 8;
+                    rHandX = headCenterX + 12 + tremble; rHandY = headCenterY + 8;
+                } else if (this.currentGesture === "CONDUCTING_HANDS") {
+                    const bTime = time * 7;
+                    rHandX = rShoulderX + (this.facing * 38) + Math.sin(bTime) * 16;
+                    rHandY = shoulderY + Math.cos(bTime) * 18;
+                    lHandX = lShoulderX - 20 - Math.sin(bTime) * 10;
+                    lHandY = shoulderY + 20;
+                } else if (this.currentGesture === "TENSE_DRUMSTICKS") {
+                    rHandX = rShoulderX + (this.facing * 20); rHandY = shoulderY + 48;
+                    lHandX = lShoulderX + (this.facing * 10); lHandY = shoulderY + 48;
+                    holdsDrumsticks = true;
+                } else if (this.currentGesture === "LEAN_INTO_FACE") {
+                    rHandX = rShoulderX + (this.facing * 42); rHandY = shoulderY + 15;
+                    lHandX = lShoulderX - 10; lHandY = shoulderY + 30;
                 }
 
-                // Draw Left Arm
+                // Left Arm
                 ctx.beginPath();
                 ctx.moveTo(lShoulderX, shoulderY);
                 ctx.lineTo(lShoulderX - 10, shoulderY + 25);
                 ctx.lineTo(lHandX, lHandY);
                 ctx.stroke();
 
-                // Draw Right Arm
+                // Right Arm
                 ctx.beginPath();
                 ctx.moveTo(rShoulderX, shoulderY);
                 ctx.lineTo(rShoulderX + (this.facing * 12), shoulderY + 22);
                 ctx.lineTo(rHandX, rHandY);
                 ctx.stroke();
+
+                // Render In-Hand Procedural Props
+                if (holdsGun) {
+                    ctx.save();
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.moveTo(rHandX, rHandY);
+                    ctx.lineTo(rHandX + (this.facing * 20), rHandY);
+                    ctx.lineTo(rHandX + (this.facing * 20), rHandY + 6);
+                    ctx.lineTo(rHandX + (this.facing * 8), rHandY + 6);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(rHandX + (this.facing * 5), rHandY + 6);
+                    ctx.lineTo(rHandX, rHandY + 15);
+                    ctx.stroke();
+
+                    // Laser Sightline
+                    ctx.strokeStyle = "rgba(239, 68, 68, 0.45)";
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(rHandX + (this.facing * 20), rHandY + 2);
+                    ctx.lineTo(rHandX + (this.facing * window.innerWidth * 0.4), rHandY + 2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // Muzzle Flash Burst
+                    if (this.currentGesture === "GUNSHOT_EXECUTION" && muzzleFlashIntensity > 0.05) {
+                        ctx.fillStyle = "#fef08a";
+                        ctx.beginPath();
+                        const mx = rHandX + (this.facing * 24), my = rHandY + 2;
+                        for (let i = 0; i < 8; i++) {
+                            const angle = (i / 8) * Math.PI * 2;
+                            const r = (i % 2 === 0 ? 24 : 9) * muzzleFlashIntensity;
+                            ctx.lineTo(mx + Math.cos(angle) * r, my + Math.sin(angle) * r);
+                        }
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                } else if (holdsBurger) {
+                    ctx.save();
+                    ctx.fillStyle = "#f59e0b";
+                    ctx.fillRect(rHandX - 8, rHandY - 6, 16, 10);
+                    ctx.fillStyle = "#22c55e";
+                    ctx.fillRect(rHandX - 7, rHandY - 2, 14, 3);
+                    ctx.restore();
+                } else if (holdsCup) {
+                    ctx.save();
+                    ctx.fillStyle = "#f8fafc";
+                    ctx.fillRect(rHandX - 6, rHandY - 10, 12, 16);
+                    ctx.strokeStyle = "#ef4444";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(rHandX, rHandY - 10);
+                    ctx.lineTo(rHandX + (this.facing * 4), rHandY - 18);
+                    ctx.stroke();
+                    ctx.restore();
+                } else if (holdsDrumsticks) {
+                    ctx.save();
+                    ctx.strokeStyle = "#e2e8f0";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(rHandX, rHandY);
+                    ctx.lineTo(rHandX + (this.facing * 20), rHandY + 16);
+                    ctx.moveTo(lHandX, lHandY);
+                    ctx.lineTo(lHandX + (this.facing * 16), lHandY + 16);
+                    ctx.stroke();
+                    ctx.restore();
+                }
 
                 // 4. Pelvis & 2-Bone IK Legs
                 const hWidth = this.hipWidth * this.scaleMultiplier;
@@ -583,27 +1121,28 @@
         }
 
         // ---------------------------------------------------------------------
-        // SCREENPLAY STAGE CONTROLLER & PROPS
+        // SCREENPLAY THEATER CONTROLLER & PROPS
         // ---------------------------------------------------------------------
         const groundLevel = window.innerHeight * 0.72;
-        let currentScreenplayKey = "a_few_good_men";
+        let currentScreenplayKey = "pulp_fiction";
         let currentBeatIndex = 0;
         let isPlaying = true;
         let voiceEnabled = true;
         let sceneHalted = false;
-        let dramaticTension = 0.55;
+        let dramaticTension = 0.40;
         let lineWobbleFactor = 1.5;
+        let muzzleFlashIntensity = 0.0;
         let beatTimer = null;
 
-        let charA = new ExpressiveLineCharacter("LT. DANIEL KAFFEE", "#38bdf8", window.innerWidth * 0.32, groundLevel, 7.0, 1);
-        let charB = new ExpressiveLineCharacter("COL. NATHAN R. JESSEP", "#f87171", window.innerWidth * 0.78, groundLevel, 9.5, -1);
+        let charA = new ExpressiveLineCharacter("JULES WINNFIELD", "#fbbf24", window.innerWidth * 0.32, groundLevel, 8.5, 1);
+        let charB = new ExpressiveLineCharacter("BRETT", "#94a3b8", window.innerWidth * 0.72, groundLevel, 3.0, -1);
 
         function loadScreenplay(key) {
             currentScreenplayKey = key;
             currentBeatIndex = 0;
             const sp = SCREENPLAYS[key];
 
-            document.getElementById('card-title').textContent = sp.title;
+            document.getElementById('card-title').textContent = `🎬 ${sp.title}`;
             document.getElementById('card-writer').textContent = `Written by ${sp.writer}`;
             document.getElementById('card-loc').textContent = `Location: ${sp.location}`;
 
@@ -627,18 +1166,19 @@
             const beat = sp.beats[index];
 
             dramaticTension = beat.tension;
+            foley.updateTension(dramaticTension);
+
             document.getElementById('beat-badge').textContent = `BEAT: ${index + 1} / ${sp.beats.length}`;
             document.getElementById('tension-badge').textContent = `TENSION: ${dramaticTension.toFixed(2)}`;
-            document.getElementById('status-badge').textContent = `STATUS: ${sp.charA.name.split(' ')[0]} (${beat.statusA.toFixed(1)}) ↔ ${sp.charB.name.split(' ')[0]} (${beat.statusB.toFixed(1)})`;
 
-            // Update subtitles
+            // Subtitles
             const speakerName = beat.speaker === "A" ? sp.charA.name : sp.charB.name;
             const speakerColor = beat.speaker === "A" ? sp.charA.color : sp.charB.color;
             document.getElementById('subtitle-speaker').textContent = speakerName;
             document.getElementById('subtitle-speaker').style.color = speakerColor;
             document.getElementById('subtitle-text').textContent = `"${beat.dialogue}"`;
 
-            // Update Character States & Targets
+            // Kinematics & Staging Target
             charA.status = beat.statusA;
             charB.status = beat.statusB;
             charA.targetX = window.innerWidth * beat.targetA;
@@ -648,12 +1188,42 @@
             charA.currentGesture = beat.gestureA || "NEUTRAL";
             charB.currentGesture = beat.gestureB || "NEUTRAL";
 
-            // Monumental scale expansion for Col. Jessep on "CAN'T HANDLE THE TRUTH"
-            if (beat.gestureB === "MONUMENTAL" || beat.gestureB === "ROAR") {
-                charB.scaleMultiplier = 1.25;
-            } else if (beat.gestureB === "SHATTERED_COLLAPSE") {
-                charB.scaleMultiplier = 0.85;
+            // Procedural Audio & Foley Synthesis Triggers
+            if (beat.gestureA === "SLAM_TABLE" || beat.gestureA === "SHATTER_LAPTOP") {
+                foley.playTableSlam();
+            } else if (beat.dialogue.includes("Honor") || beat.dialogue.includes("Court")) {
+                foley.playGavelStrike();
+            } else if (beat.gestureA === "GUNSHOT_EXECUTION" || beat.dialogue.includes("LAY MY VENGEANCE")) {
+                foley.playGunshot();
+                muzzleFlashIntensity = 1.0;
+            } else if (beat.gestureA === "BURGER_BITE") {
+                foley.playBurgerCrunch();
+            } else if (beat.gestureA === "STRAW_SLURP") {
+                foley.playStrawSlurp();
+            } else if (beat.dialogue.includes("case") || beat.dialogue.includes("cupboard")) {
+                foley.playBriefcaseClick();
+            } else if (beat.gestureA === "CONDUCTING_HANDS") {
+                foley.playDrumRimshot();
+            } else if (beat.gestureA === "RAISE_FIST_HALT") {
+                foley.playCymbalHit();
+            } else if (beat.gestureA === "LEAN_INTO_FACE" || beat.dialogue.includes("dragging")) {
+                foley.playSlap();
+            }
+
+            // Cinematic Camera Staging
+            const camTargetX = ((charA.targetX + charB.targetX) * 0.5) - (window.innerWidth * 0.5);
+            camera.setShot(camTargetX * 0.5, 0, beat.camZoom || 1.2, beat.camLabel || "CINEMATIC MEDIUM");
+            if (beat.shake) {
+                camera.addShake(beat.shake);
+            }
+
+            // Scale & Stature surges for monumental shouts
+            if (beat.gestureA === "ROAR_EZEKIEL_CLIMAX" || beat.gestureB === "ROAR_AIM" || beat.gestureB === "MONUMENTAL" || beat.gestureB === "ROAR") {
+                (beat.speaker === "A" ? charA : charB).scaleMultiplier = 1.25;
+            } else if (beat.gestureB === "SHATTERED_COLLAPSE" || beat.gestureB === "FLINCH_TERROR") {
+                charB.scaleMultiplier = 0.88;
             } else {
+                charA.scaleMultiplier = 1.0;
                 charB.scaleMultiplier = 1.0;
             }
 
@@ -680,9 +1250,8 @@
                 };
                 window.speechSynthesis.speak(utterance);
             } else if (isPlaying && !sceneHalted) {
-                // If speech disabled, advance based on reading time
                 clearTimeout(beatTimer);
-                const duration = Math.max(3000, beat.dialogue.length * 75);
+                const duration = Math.max(3200, beat.dialogue.length * 80);
                 beatTimer = setTimeout(() => {
                     if (currentBeatIndex < sp.beats.length - 1) {
                         applyBeat(currentBeatIndex + 1);
@@ -694,13 +1263,104 @@
             }
         }
 
-        // Draw Courtroom / Office Minimalist Props
+        // Draw Minimalist Vector Props
         function drawProps(ctx, propType) {
             ctx.save();
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
             ctx.lineWidth = 2;
 
-            if (propType === "COURTROOM") {
+            if (propType === "APARTMENT_KAHUNA") {
+                // Dilapidated Kitchen Table
+                const tableX = window.innerWidth * 0.60;
+                ctx.strokeRect(tableX, groundLevel - 44, window.innerWidth * 0.17, 44);
+
+                // Brett's Chair
+                const chairX = window.innerWidth * 0.72;
+                ctx.strokeRect(chairX - 8, groundLevel - 36, 26, 36);
+                ctx.beginPath();
+                ctx.moveTo(chairX + 18, groundLevel - 72);
+                ctx.lineTo(chairX + 18, groundLevel);
+                ctx.stroke();
+
+                // Big Kahuna Burger Box
+                ctx.fillStyle = "rgba(245, 158, 11, 0.8)";
+                ctx.fillRect(tableX + 18, groundLevel - 54, 24, 10);
+                ctx.fillStyle = "rgba(239, 68, 68, 0.9)";
+                ctx.fillRect(tableX + 22, groundLevel - 52, 16, 3); // red logo stripe
+
+                // Sprite Fast-Food Drink Cup with Red Bendy Straw
+                ctx.fillStyle = "rgba(248, 250, 252, 0.85)";
+                ctx.fillRect(tableX + 48, groundLevel - 62, 14, 18);
+                ctx.strokeStyle = "#ef4444";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(tableX + 55, groundLevel - 62);
+                ctx.lineTo(tableX + 55, groundLevel - 72);
+                ctx.lineTo(tableX + 61, groundLevel - 78);
+                ctx.stroke();
+
+                // The Mysterious Glowing Golden Briefcase (Marcellus Wallace)
+                const caseX = window.innerWidth * 0.38;
+                ctx.strokeStyle = "rgba(250, 204, 21, 0.9)";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(caseX, groundLevel - 28, 36, 28);
+                // Open Lid
+                ctx.beginPath();
+                ctx.moveTo(caseX, groundLevel - 28);
+                ctx.lineTo(caseX - 10, groundLevel - 52);
+                ctx.stroke();
+
+                // Golden Volumetric Radial Rays Emitted Upward
+                const glowGrad = ctx.createRadialGradient(caseX + 18, groundLevel - 30, 2, caseX + 18, groundLevel - 30, 120);
+                glowGrad.addColorStop(0, "rgba(250, 204, 21, 0.5)");
+                glowGrad.addColorStop(0.5, "rgba(245, 158, 11, 0.18)");
+                glowGrad.addColorStop(1, "rgba(250, 204, 21, 0)");
+                ctx.fillStyle = glowGrad;
+                ctx.beginPath();
+                ctx.moveTo(caseX - 25, groundLevel);
+                ctx.lineTo(caseX - 50, groundLevel - 180);
+                ctx.lineTo(caseX + 85, groundLevel - 180);
+                ctx.lineTo(caseX + 60, groundLevel);
+                ctx.closePath();
+                ctx.fill();
+
+            } else if (propType === "BAND_STUDIO") {
+                // Snare Drum & Chrome Stand
+                const drumX = window.innerWidth * 0.72;
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+                ctx.strokeRect(drumX - 16, groundLevel - 52, 36, 18);
+                ctx.beginPath();
+                ctx.moveTo(drumX + 2, groundLevel - 34);
+                ctx.lineTo(drumX + 2, groundLevel);
+                ctx.moveTo(drumX + 2, groundLevel - 20);
+                ctx.lineTo(drumX - 14, groundLevel);
+                ctx.moveTo(drumX + 2, groundLevel - 20);
+                ctx.lineTo(drumX + 18, groundLevel);
+                ctx.stroke();
+
+                // Ride Cymbal
+                const cymbalX = drumX + 28;
+                ctx.beginPath();
+                ctx.moveTo(cymbalX, groundLevel - 88);
+                ctx.lineTo(cymbalX + 28, groundLevel - 80);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(cymbalX + 14, groundLevel - 84);
+                ctx.lineTo(cymbalX + 14, groundLevel);
+                ctx.stroke();
+
+                // Conductor Music Stand
+                const standX = window.innerWidth * 0.40;
+                ctx.beginPath();
+                ctx.moveTo(standX, groundLevel - 90);
+                ctx.lineTo(standX + 24, groundLevel - 82);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(standX + 12, groundLevel - 86);
+                ctx.lineTo(standX + 12, groundLevel);
+                ctx.stroke();
+
+            } else if (propType === "COURTROOM") {
                 // Witness Box Railing
                 const boxX = window.innerWidth * 0.72;
                 ctx.strokeRect(boxX, groundLevel - 55, window.innerWidth * 0.15, 55);
@@ -709,26 +1369,42 @@
                 ctx.lineTo(boxX + 25, groundLevel);
                 ctx.stroke();
 
-                // Marine Corps Flag Pole
+                // Marine Flag
                 ctx.beginPath();
                 ctx.moveTo(boxX + window.innerWidth * 0.16, groundLevel - 140);
                 ctx.lineTo(boxX + window.innerWidth * 0.16, groundLevel);
                 ctx.stroke();
-                ctx.fillStyle = "rgba(239, 68, 68, 0.3)";
+                ctx.fillStyle = "rgba(239, 68, 68, 0.35)";
                 ctx.fillRect(boxX + window.innerWidth * 0.16, groundLevel - 140, 24, 16);
 
                 // Counsel Table
                 const tableX = window.innerWidth * 0.18;
                 ctx.strokeRect(tableX, groundLevel - 40, window.innerWidth * 0.14, 40);
-                // Yellow legal pad on table
                 ctx.fillStyle = "rgba(250, 204, 21, 0.6)";
                 ctx.fillRect(tableX + 30, groundLevel - 44, 18, 6);
 
+            } else if (propType === "INTERROGATION") {
+                // Steel Interrogation Table
+                const tableX = window.innerWidth * 0.46;
+                ctx.strokeRect(tableX, groundLevel - 48, window.innerWidth * 0.18, 48);
+                // Overhead Single Bulb Cone
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+                ctx.beginPath();
+                ctx.moveTo(window.innerWidth * 0.55, 0);
+                ctx.lineTo(window.innerWidth * 0.55, groundLevel - 140);
+                ctx.stroke();
+                // Light cone
+                ctx.fillStyle = "rgba(250, 204, 21, 0.03)";
+                ctx.beginPath();
+                ctx.moveTo(window.innerWidth * 0.55, groundLevel - 140);
+                ctx.lineTo(window.innerWidth * 0.35, groundLevel);
+                ctx.lineTo(window.innerWidth * 0.75, groundLevel);
+                ctx.closePath();
+                ctx.fill();
+
             } else if (propType === "SILICON_VALLEY") {
-                // Glass Standing Desk
                 const deskX = window.innerWidth * 0.68;
                 ctx.strokeRect(deskX, groundLevel - 52, window.innerWidth * 0.12, 52);
-                // Laptop on desk
                 ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
                 ctx.strokeRect(deskX + 15, groundLevel - 64, 20, 12);
             }
@@ -736,7 +1412,7 @@
         }
 
         // ---------------------------------------------------------------------
-        // ANIMATION LOOP
+        // RENDER LOOP WITH CAMERA TRANSFORM
         // ---------------------------------------------------------------------
         let lastTimestamp = performance.now();
 
@@ -745,14 +1421,20 @@
             lastTimestamp = timestamp;
             const time = timestamp * 0.001;
 
+            camera.update(dt);
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Apply 2D Procedural Camera
+            ctx.save();
+            camera.apply(ctx, window.innerWidth * 0.5, groundLevel);
 
             // Ground Horizon
             ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
             ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.moveTo(0, groundLevel);
-            ctx.lineTo(window.innerWidth, groundLevel);
+            ctx.moveTo(-window.innerWidth, groundLevel);
+            ctx.lineTo(window.innerWidth * 2, groundLevel);
             ctx.stroke();
 
             // Render Screenplay Scene Props
@@ -766,6 +1448,15 @@
             }
             charA.draw(ctx, time, lineWobbleFactor, dramaticTension);
             charB.draw(ctx, time, lineWobbleFactor, dramaticTension);
+
+            ctx.restore(); // Restore Camera
+
+            // Screen Flash on Gunshot Execution
+            if (muzzleFlashIntensity > 0.04) {
+                ctx.fillStyle = `rgba(255, 245, 210, ${muzzleFlashIntensity * 0.4})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                muzzleFlashIntensity *= 0.72;
+            }
 
             // Forum Intervention Freeze Overlay
             if (sceneHalted) {
@@ -782,7 +1473,7 @@
                 ctx.fillText("⚡ FORUM THEATRE: MOVIE SCENE HALTED (SPECT-ACTOR TRIAL) ⚡", window.innerWidth * 0.5, 90);
                 ctx.font = "14px -apple-system, sans-serif";
                 ctx.fillStyle = "#cbd5e1";
-                ctx.fillText("Replace Lt. Daniel Kaffee or Col. Jessep. Test an alternate tactical interrogation!", window.innerWidth * 0.5, 118);
+                ctx.fillText("Replace the lead actor. Test an alternate tactical interrogation in real-time!", window.innerWidth * 0.5, 118);
             }
 
             requestAnimationFrame(animate);
@@ -792,19 +1483,26 @@
         // ---------------------------------------------------------------------
         // UI & EVENT HANDLERS
         // ---------------------------------------------------------------------
+        document.body.addEventListener('click', () => {
+            foley.init(); // Initialize Web Audio Context on first user gesture
+        }, { once: true });
+
         const sceneSelect = document.getElementById('scene-select');
         sceneSelect.addEventListener('change', (e) => {
+            foley.init();
             loadScreenplay(e.target.value);
         });
 
         const btnPlayPause = document.getElementById('btn-play-pause');
         btnPlayPause.addEventListener('click', () => {
+            foley.init();
             isPlaying = !isPlaying;
             btnPlayPause.textContent = isPlaying ? "⏸ PAUSE" : "▶ PLAY";
             if (isPlaying) applyBeat(currentBeatIndex);
         });
 
         document.getElementById('btn-next').addEventListener('click', () => {
+            foley.init();
             const sp = SCREENPLAYS[currentScreenplayKey];
             if (currentBeatIndex < sp.beats.length - 1) {
                 applyBeat(currentBeatIndex + 1);
@@ -812,25 +1510,31 @@
         });
 
         document.getElementById('btn-prev').addEventListener('click', () => {
+            foley.init();
             if (currentBeatIndex > 0) {
                 applyBeat(currentBeatIndex - 1);
             }
         });
 
-        const btnVoice = document.getElementById('btn-voice');
-        btnVoice.addEventListener('click', () => {
-            voiceEnabled = !voiceEnabled;
-            btnVoice.textContent = voiceEnabled ? "🔊 VOICE: ON" : "🔇 VOICE: OFF";
-            btnVoice.classList.toggle('active', voiceEnabled);
-            if (!voiceEnabled && 'speechSynthesis' in window) {
+        const btnFoley = document.getElementById('btn-foley');
+        btnFoley.addEventListener('click', () => {
+            foley.init();
+            foley.enabled = !foley.enabled;
+            voiceEnabled = foley.enabled;
+            btnFoley.textContent = foley.enabled ? "🔊 FOLEY & AUDIO: ON" : "🔇 AUDIO: MUTED";
+            btnFoley.classList.toggle('active', foley.enabled);
+            if (!foley.enabled && 'speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
             }
         });
 
         const btnIntervene = document.getElementById('btn-intervene');
+        const modal = document.getElementById('intervention-modal');
+
         btnIntervene.addEventListener('click', () => {
             sceneHalted = !sceneHalted;
-            btnIntervene.textContent = sceneHalted ? "RESUME SCENE" : "⚡ FORUM STOP!";
+            modal.style.display = sceneHalted ? 'block' : 'none';
+            btnIntervene.textContent = sceneHalted ? "RESUME SCENE" : "⚡ FORUM STOP! (INTERVENE)";
             btnIntervene.classList.toggle('active', sceneHalted);
             if (sceneHalted && 'speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
@@ -840,8 +1544,70 @@
             }
         });
 
-        // Initialize with A Few Good Men
-        loadScreenplay("a_few_good_men");
+        document.getElementById('modal-close').addEventListener('click', () => {
+            sceneHalted = false;
+            modal.style.display = 'none';
+            btnIntervene.textContent = "⚡ FORUM STOP! (INTERVENE)";
+            btnIntervene.classList.remove('active');
+            applyBeat(currentBeatIndex);
+        });
+
+        document.getElementById('btn-submit-intervention').addEventListener('click', () => {
+            const targetChar = document.getElementById('spectactor-target').value;
+            const tactic = document.getElementById('spectactor-tactic').value;
+            const userLine = document.getElementById('spectactor-input').value.trim() || "Wait! Hear me out before you pull that trigger!";
+            const feedback = document.getElementById('intervention-feedback');
+
+            feedback.textContent = `Applied AI: Evaluating tactic [${tactic}] against oppressor resistance...`;
+
+            const sp = SCREENPLAYS[currentScreenplayKey];
+            const activeActor = targetChar === "A" ? charA : charB;
+
+            let statusBoost = 2.0;
+            if (tactic === "confront") statusBoost = 3.5;
+            else if (tactic === "appease") statusBoost = 0.5;
+            else if (tactic === "whistleblow") statusBoost = 4.0;
+
+            activeActor.status = Math.min(10.0, activeActor.status + statusBoost);
+            dramaticTension = Math.min(1.0, dramaticTension + 0.15);
+            foley.updateTension(dramaticTension);
+
+            document.getElementById('subtitle-speaker').textContent = `[SPECT-ACTOR as ${activeActor.name}]`;
+            document.getElementById('subtitle-speaker').style.color = "#22c55e";
+            document.getElementById('subtitle-text').textContent = `"${userLine}"`;
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(userLine);
+                utter.pitch = targetChar === "A" ? 1.0 : 1.2;
+                utter.rate = 1.05;
+                utter.onend = () => {
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        sceneHalted = false;
+                        btnIntervene.textContent = "⚡ FORUM STOP! (INTERVENE)";
+                        btnIntervene.classList.remove('active');
+                        if (isPlaying && currentBeatIndex < sp.beats.length - 1) {
+                            applyBeat(currentBeatIndex + 1);
+                        }
+                    }, 1200);
+                };
+                window.speechSynthesis.speak(utter);
+            } else {
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                    sceneHalted = false;
+                    btnIntervene.textContent = "⚡ FORUM STOP! (INTERVENE)";
+                    btnIntervene.classList.remove('active');
+                    if (isPlaying && currentBeatIndex < sp.beats.length - 1) {
+                        applyBeat(currentBeatIndex + 1);
+                    }
+                }, 2200);
+            }
+        });
+
+        // Initialize with Quentin Tarantino's Pulp Fiction (Ezekiel 25:17)
+        loadScreenplay("pulp_fiction");
     </script>
 </body>
 </html>
