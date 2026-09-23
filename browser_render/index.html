@@ -19,6 +19,7 @@
             flex-direction: column;
             width: 100vw;
             height: 100vh;
+            user-select: none;
         }
         #stage-container {
             position: relative;
@@ -28,6 +29,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: crosshair;
         }
         canvas {
             display: block;
@@ -75,21 +77,36 @@
             50% { transform: scale(1.3); opacity: 0.5; }
             100% { transform: scale(0.9); opacity: 1; }
         }
+        #click-hint {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38bdf8;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+        }
         #controls-panel {
             position: absolute;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(18, 22, 29, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 12px 24px;
+            background: rgba(18, 22, 29, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            padding: 12px 20px;
             border-radius: 12px;
             backdrop-filter: blur(16px);
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
             font-size: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            z-index: 10;
         }
         .control-group {
             display: flex;
@@ -114,10 +131,20 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
+            white-space: nowrap;
         }
         button:hover {
             background: #1d4ed8;
             transform: translateY(-1px);
+        }
+        button.active {
+            background: #10b981;
+        }
+        #btn-intervene {
+            background: #b91c1c;
+        }
+        #btn-intervene:hover {
+            background: #dc2626;
         }
         #subtitles {
             position: absolute;
@@ -125,18 +152,18 @@
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
-            max-width: 70%;
+            max-width: 75%;
             font-size: 18px;
             font-weight: 500;
             letter-spacing: 0.3px;
             color: #f8fafc;
             text-shadow: 0 2px 10px rgba(0,0,0,0.8);
             pointer-events: none;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px 18px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(6px);
         }
     </style>
 </head>
@@ -145,11 +172,14 @@
         <canvas id="stage"></canvas>
 
         <div id="overlay-ui">
-            <div class="badge badge-live">ALIPS PROCEDURAL VECTOR STAGE</div>
+            <div class="badge badge-live">ALIPS PROCEDURAL KINEMATIC STAGE</div>
             <div class="badge" id="tension-badge">TENSION: 0.60 (STABLE)</div>
             <div class="badge" id="status-badge">STATUS SEE-SAW: A(8.0) ↔ B(2.3)</div>
             <div class="badge" id="fps-badge">FPS: 60</div>
+            <div class="badge" id="walk-badge">LOCOMOTION: ACTIVE (2-BONE IK GAIT)</div>
         </div>
+
+        <div id="click-hint">💡 Click anywhere on stage floor to make the active character walk there!</div>
 
         <div id="subtitles">"The estate belongs to the Duke, Thomas. Put down the silver."</div>
 
@@ -163,17 +193,19 @@
                 <input type="range" id="slider-status-a" min="1" max="10" step="0.5" value="8.0">
             </div>
             <div class="control-group">
-                <label>Line Wobble / Organic Noise: <span id="val-wobble">1.5</span></label>
+                <label>Line Wobble: <span id="val-wobble">1.5</span></label>
                 <input type="range" id="slider-wobble" min="0" max="5" step="0.2" value="1.5">
             </div>
-            <button id="btn-intervene">FORUM STOP! (INTERVENE)</button>
+            <button id="btn-pacing" class="active">AUTO PACING: ON</button>
+            <button id="btn-confront">CONFRONT</button>
+            <button id="btn-intervene">FORUM STOP!</button>
         </div>
     </div>
 
     <script>
         // ---------------------------------------------------------------------
         // ALIPS Minimalist Expressive Line Puppetry Engine
-        // Verlet Kinematics, Procedural Breathing, Status Rigging & Jitter
+        // With Analytical 2-Bone Inverse Kinematics (IK) Procedural Walk Engine
         // ---------------------------------------------------------------------
         const canvas = document.getElementById('stage');
         const ctx = canvas.getContext('2d');
@@ -186,69 +218,164 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // Global Dynamic Parameters (Controlled via WebSocket or UI Sliders)
+        // Analytical 2-Bone Inverse Kinematics Solver (Law of Cosines)
+        function solve2BoneIK(hx, hy, fx, fy, L1, L2, bendDir = 1) {
+            const dx = fx - hx;
+            const dy = fy - hy;
+            const d = Math.max(1, Math.min(Math.hypot(dx, dy), (L1 + L2) * 0.999));
+            const baseAngle = Math.atan2(dy, dx);
+
+            // Law of Cosines for interior knee angle
+            const cosBeta = (L1 * L1 + d * d - L2 * L2) / (2 * L1 * d);
+            const beta = Math.acos(Math.max(-1, Math.min(1, cosBeta)));
+
+            // Knee coordinates
+            const kneeAngle = baseAngle + (beta * bendDir);
+            const kx = hx + Math.cos(kneeAngle) * L1;
+            const ky = hy + Math.sin(kneeAngle) * L1;
+
+            return { kx, ky, fx, fy };
+        }
+
+        // Global Parameters
         let dramaticTension = 0.60;
         let lineWobbleFactor = 1.5;
         let sceneHalted = false;
-        let haltTime = 0;
+        let autoPacingEnabled = true;
 
         // Kinematic Character Entity
         class ExpressiveLineCharacter {
-            constructor(name, baseColor, defaultX, groundY, statusLevel) {
+            constructor(name, baseColor, defaultX, groundY, statusLevel, facing = 1) {
                 this.name = name;
                 this.baseColor = baseColor;
                 this.rootX = defaultX;
+                this.targetX = defaultX;
                 this.groundY = groundY;
-                this.status = statusLevel; // Keith Johnstone 1.0 to 10.0
-                this.scale = 1.0;
+                this.status = statusLevel; // 1.0 to 10.0
+                this.facing = facing; // +1 facing right, -1 facing left
                 this.isSpeaking = false;
                 this.mouthOpen = 0.0;
                 this.mouthSmile = 0.0;
-                this.gesturePhase = 0;
 
-                // Skeletal joint offsets from root
-                this.spineLength = 110;
-                this.shoulderWidth = 44;
-                this.hipWidth = 32;
-                this.upperArmLen = 50;
-                this.foreArmLen = 45;
-                this.upperLegLen = 65;
-                this.lowerLegLen = 65;
-                this.headRadius = 24;
+                // Skeletal Dimensions
+                this.spineLength = 105;
+                this.shoulderWidth = 42;
+                this.hipWidth = 30;
+                this.upperArmLen = 48;
+                this.foreArmLen = 42;
+                this.upperLegLen = 62;
+                this.lowerLegLen = 62;
+                this.headRadius = 23;
 
-                // Physics state memory for smooth inertia
-                this.pelvisY = 0;
+                // Locomotion & Physics Memory
+                this.vx = 0;
+                this.walkPhase = 0; // Gait cycle accumulator
+                this.pelvisY = groundY - 110;
                 this.spineAngle = 0;
                 this.headAngle = 0;
+                this.isWalking = false;
+
+                // Foot positions
+                this.lFootX = defaultX - 15;
+                this.lFootY = groundY;
+                this.rFootX = defaultX + 15;
+                this.rFootY = groundY;
             }
 
-            update(time, tension) {
-                // Keith Johnstone Status Dynamics
-                // Status 10: Expanded chest, erect posture, steady gaze, wide solid base
-                // Status 1: Sagging vertebrae, bent knees, narrow stance, head lowered
+            update(time, tension, dt = 0.016) {
                 const normStatus = (this.status - 1) / 9; // 0.0 (submissive) to 1.0 (dominant)
 
-                // Procedural Breathing & Biological Micro-Oscillations
-                const breathFrequency = 0.3 + (tension * 0.4); // Breathing speeds up under tension
+                // 1. Horizontal Locomotion & Pacing
+                const distToTarget = this.targetX - this.rootX;
+                const walkThreshold = 4;
+
+                if (Math.abs(distToTarget) > walkThreshold && !sceneHalted) {
+                    this.isWalking = true;
+                    this.facing = distToTarget > 0 ? 1 : -1;
+                    
+                    // High status strides confidently; low status scurries or drags feet
+                    const baseSpeed = (120 + (normStatus * 80) + (tension * 60));
+                    const moveDir = Math.sign(distToTarget);
+                    this.vx = moveDir * baseSpeed * dt;
+
+                    // Clamp to target
+                    if (Math.abs(distToTarget) < Math.abs(this.vx)) {
+                        this.rootX = this.targetX;
+                        this.vx = 0;
+                        this.isWalking = false;
+                    } else {
+                        this.rootX += this.vx;
+                    }
+
+                    // Advance gait phase based on distance traveled
+                    const strideLength = 32 + (normStatus * 20); // Long strides for high status
+                    this.walkPhase += (Math.abs(this.vx) / strideLength) * Math.PI * 2;
+                } else {
+                    this.isWalking = false;
+                    this.vx = 0;
+                    // Gradually return walk phase to relaxed rest
+                    this.walkPhase *= 0.92;
+                }
+
+                // 2. Procedural Breathing & Gait Bounce
+                const breathFreq = 0.3 + (tension * 0.4);
                 const breathAmp = 3 + (normStatus * 4);
-                const breath = Math.sin(time * breathFrequency * Math.PI * 2) * breathAmp;
+                const breath = Math.sin(time * breathFreq * Math.PI * 2) * breathAmp;
 
-                // Posture adjustment based on status
-                const postureHeightMod = (normStatus - 0.5) * 30; // +15px at S=10, -15px at S=1
-                const targetPelvisY = (this.groundY - (this.upperLegLen + this.lowerLegLen - 10)) - postureHeightMod + breath * 0.3;
-                this.pelvisY += (targetPelvisY - this.pelvisY) * 0.1;
+                // Pelvic vertical bounce (inverted pendulum gait during walking)
+                const walkBob = this.isWalking ? -Math.abs(Math.sin(this.walkPhase)) * 8 : 0;
+                const postureHeightMod = (normStatus - 0.5) * 26;
+                const targetPelvisY = (this.groundY - (this.upperLegLen + this.lowerLegLen - 12)) - postureHeightMod + breath * 0.3 + walkBob;
+                this.pelvisY += (targetPelvisY - this.pelvisY) * 0.2;
 
-                // Spine Curvature
-                const targetSpineAngle = (1.0 - normStatus) * 0.25; // Leaning forward/slumped if low status
+                // 3. Dynamic Spine & Head Angles
+                // Walking leans slightly forward; low status hunches
+                const walkLean = this.isWalking ? (this.facing * 0.12) : 0;
+                const targetSpineAngle = ((1.0 - normStatus) * 0.25) + walkLean;
                 this.spineAngle += (targetSpineAngle - this.spineAngle) * 0.1;
 
-                // Head Tilt
-                const targetHeadAngle = (normStatus - 0.7) * 0.2; // Tilted slightly up if high status, down if low
+                const targetHeadAngle = (normStatus - 0.7) * 0.2;
                 this.headAngle += (targetHeadAngle - this.headAngle) * 0.1;
 
-                // Mouth activity if speaking
+                // 4. Foot Trajectory Kinematics (Gait Cycle)
+                const strideLen = 30 + (normStatus * 18);
+                const stepHeight = 16 + (tension * 8);
+
+                const lHipX = this.rootX - (this.hipWidth * 0.5);
+                const rHipX = this.rootX + (this.hipWidth * 0.5);
+
+                if (this.isWalking) {
+                    // Left Leg Phase
+                    const phiL = this.walkPhase;
+                    const sinL = Math.sin(phiL);
+                    const cosL = Math.cos(phiL);
+
+                    this.lFootX = lHipX + (cosL * strideLen * this.facing);
+                    // Lift off ground during swing phase (sin > 0)
+                    this.lFootY = (sinL > 0) ? this.groundY - (sinL * stepHeight) : this.groundY;
+
+                    // Right Leg Phase (Anti-phase, 180 deg shifted)
+                    const phiR = this.walkPhase + Math.PI;
+                    const sinR = Math.sin(phiR);
+                    const cosR = Math.cos(phiR);
+
+                    this.rFootX = rHipX + (cosR * strideLen * this.facing);
+                    this.rFootY = (sinR > 0) ? this.groundY - (sinR * stepHeight) : this.groundY;
+                } else {
+                    // Resting stance width governed by status
+                    const restStance = 16 + (normStatus * 18);
+                    const targetLFootX = lHipX - (restStance * 0.5);
+                    const targetRFootX = rHipX + (restStance * 0.5);
+
+                    this.lFootX += (targetLFootX - this.lFootX) * 0.2;
+                    this.rFootX += (targetRFootX - this.rFootX) * 0.2;
+                    this.lFootY += (this.groundY - this.lFootY) * 0.2;
+                    this.rFootY += (this.groundY - this.rFootY) * 0.2;
+                }
+
+                // 5. Speech Viseme Oscillation
                 if (this.isSpeaking) {
-                    this.mouthOpen = Math.abs(Math.sin(time * 12)) * 0.8;
+                    this.mouthOpen = Math.abs(Math.sin(time * 14)) * 0.85;
                 } else {
                     this.mouthOpen *= 0.85;
                 }
@@ -258,14 +385,12 @@
                 ctx.save();
 
                 const normStatus = (this.status - 1) / 9;
-                // Line weight increases with status and dramatic presence
                 const baseLineWidth = 2.0 + (normStatus * 2.5);
                 ctx.lineWidth = baseLineWidth;
                 ctx.strokeStyle = this.baseColor;
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
 
-                // Helper to apply organic Perlin-like line jitter based on tension
                 const jitter = (mag = 1.0) => {
                     const w = wobbleFactor * (1.0 + tension * 1.5) * mag;
                     return (Math.random() - 0.5) * w;
@@ -278,37 +403,32 @@
                 const neckX = px + Math.sin(this.spineAngle) * this.spineLength + jitter(0.7);
                 const neckY = py - Math.cos(this.spineAngle) * this.spineLength + jitter(0.7);
 
-                // 2. Draw Spine
                 ctx.beginPath();
                 ctx.moveTo(px, py);
-                // Slight curved cubic bezier for organic vertebrae look
                 const ctrlX = px + Math.sin(this.spineAngle * 0.5) * (this.spineLength * 0.5) + jitter(1);
                 const ctrlY = (py + neckY) * 0.5 + jitter(1);
                 ctx.quadraticCurveTo(ctrlX, ctrlY, neckX, neckY);
                 ctx.stroke();
 
-                // 3. Head & Minimalist Face Features
+                // 2. Head & Facial Features
                 const headCenterX = neckX + Math.sin(this.headAngle) * this.headRadius + jitter(0.5);
                 const headCenterY = neckY - Math.cos(this.headAngle) * this.headRadius + jitter(0.5);
 
-                // Continuous expressive head contour
                 ctx.beginPath();
                 ctx.arc(headCenterX, headCenterY, this.headRadius, 0, Math.PI * 2);
                 ctx.stroke();
 
-                // Minimalist Expressive Eyes (Single slit or focused dots)
+                // Eyes
                 const eyeSpread = 7;
                 const eyeYOffset = -2;
-                const facingDir = this.name === "AGENT_A" ? 1 : -1;
-
                 ctx.fillStyle = this.baseColor;
                 ctx.beginPath();
-                ctx.arc(headCenterX + (eyeSpread * facingDir * 0.7), headCenterY + eyeYOffset, 2.2, 0, Math.PI * 2);
+                ctx.arc(headCenterX + (eyeSpread * this.facing * 0.7), headCenterY + eyeYOffset, 2.2, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Minimalist Mouth (Expressive single-line viseme)
+                // Mouth
                 const mouthY = headCenterY + 9;
-                const mouthX = headCenterX + (facingDir * 6);
+                const mouthX = headCenterX + (this.facing * 6);
                 const openDist = this.mouthOpen * 7;
 
                 ctx.beginPath();
@@ -321,63 +441,66 @@
                     ctx.stroke();
                 }
 
-                // 4. Shoulders & Arms (2-Bone Kinematics)
+                // 3. Shoulders & Arms (With Biological Counter-Swing Locomotion)
                 const shoulderY = neckY + 12;
                 const lShoulderX = neckX - (this.shoulderWidth * 0.5);
                 const rShoulderX = neckX + (this.shoulderWidth * 0.5);
 
-                // Shoulder bridge
                 ctx.beginPath();
                 ctx.moveTo(lShoulderX, shoulderY);
                 ctx.lineTo(rShoulderX, shoulderY);
                 ctx.stroke();
 
-                // Arm gesture dynamics (speaking agent gestures expressively)
-                const gAmp = this.isSpeaking ? Math.sin(time * 5) * 20 : 0;
-                const lHandTargetX = lShoulderX - 25 + gAmp;
-                const lHandTargetY = shoulderY + 45 - Math.abs(gAmp);
+                // Walking arm counter-swing
+                const armSwing = this.isWalking ? Math.sin(this.walkPhase) * 26 * this.facing : 0;
+                const gestureAmp = this.isSpeaking ? Math.sin(time * 6) * 18 : 0;
 
-                const rHandTargetX = rShoulderX + (facingDir * 35) + gAmp * 0.5;
-                const rHandTargetY = shoulderY + 30 - gAmp;
-
-                // Draw Left Arm
+                // Left Arm (Swings with Right Leg)
+                const lHandX = lShoulderX - (armSwing * 0.9) - 15;
+                const lHandY = shoulderY + 45 + Math.abs(armSwing * 0.4);
                 ctx.beginPath();
                 ctx.moveTo(lShoulderX, shoulderY);
-                ctx.lineTo(lShoulderX - 15, shoulderY + 30);
-                ctx.lineTo(lHandTargetX, lHandTargetY);
+                ctx.lineTo(lShoulderX - 10, shoulderY + 25);
+                ctx.lineTo(lHandX, lHandY);
                 ctx.stroke();
 
-                // Draw Right Arm
+                // Right Arm (Swings with Left Leg + Speaking Gestures)
+                const rHandX = rShoulderX + (armSwing * 0.9) + (this.facing * 20) + gestureAmp;
+                const rHandY = shoulderY + 35 - gestureAmp - Math.abs(armSwing * 0.3);
                 ctx.beginPath();
                 ctx.moveTo(rShoulderX, shoulderY);
-                ctx.lineTo(rShoulderX + (facingDir * 15), shoulderY + 25);
-                ctx.lineTo(rHandTargetX, rHandTargetY);
+                ctx.lineTo(rShoulderX + (this.facing * 12), shoulderY + 22);
+                ctx.lineTo(rHandX, rHandY);
                 ctx.stroke();
 
-                // 5. Pelvis & Legs
+                // 4. Pelvis & 2-Bone Inverse Kinematic Legs
                 const lHipX = px - (this.hipWidth * 0.5);
                 const rHipX = px + (this.hipWidth * 0.5);
-                const stanceWidth = 25 + (normStatus * 20); // Dominant character takes wider stance
 
-                // Left Leg
+                // Solve Left Leg IK
+                const lIK = solve2BoneIK(lHipX, py, this.lFootX, this.lFootY, this.upperLegLen, this.lowerLegLen, this.facing);
                 ctx.beginPath();
                 ctx.moveTo(lHipX, py);
-                ctx.lineTo(lHipX - (stanceWidth * 0.4), py + this.upperLegLen);
-                ctx.lineTo(lHipX - (stanceWidth * 0.6), this.groundY);
+                ctx.lineTo(lIK.kx, lIK.ky); // Knee joint
+                ctx.lineTo(lIK.fx, lIK.fy); // Foot contact
+                ctx.lineTo(lIK.fx + (this.facing * 8), lIK.fy); // Foot toe
                 ctx.stroke();
 
-                // Right Leg
+                // Solve Right Leg IK
+                const rIK = solve2BoneIK(rHipX, py, this.rFootX, this.rFootY, this.upperLegLen, this.lowerLegLen, this.facing);
                 ctx.beginPath();
                 ctx.moveTo(rHipX, py);
-                ctx.lineTo(rHipX + (stanceWidth * 0.4), py + this.upperLegLen);
-                ctx.lineTo(rHipX + (stanceWidth * 0.6), this.groundY);
+                ctx.lineTo(rIK.kx, rIK.ky); // Knee joint
+                ctx.lineTo(rIK.fx, rIK.fy); // Foot contact
+                ctx.lineTo(rIK.fx + (this.facing * 8), rIK.fy); // Foot toe
                 ctx.stroke();
 
                 // Character Name Tag
                 ctx.font = '11px -apple-system, sans-serif';
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                 ctx.textAlign = 'center';
-                ctx.fillText(`${this.name} [S:${this.status.toFixed(1)}]`, px, this.groundY + 25);
+                const walkStateText = this.isWalking ? ' 🚶' : '';
+                ctx.fillText(`${this.name} [S:${this.status.toFixed(1)}]${walkStateText}`, px, this.groundY + 25);
 
                 ctx.restore();
             }
@@ -385,17 +508,61 @@
 
         // Initialize Dramaturgical Entities
         const groundLevel = window.innerHeight * 0.72;
-        const agentA = new ExpressiveLineCharacter("AGENT_A", "#38bdf8", window.innerWidth * 0.35, groundLevel, 8.0);
-        const agentB = new ExpressiveLineCharacter("AGENT_B", "#fb923c", window.innerWidth * 0.65, groundLevel, 2.3);
+        const agentA = new ExpressiveLineCharacter("AGENT_A", "#38bdf8", window.innerWidth * 0.28, groundLevel, 8.0, 1);
+        const agentB = new ExpressiveLineCharacter("AGENT_B", "#fb923c", window.innerWidth * 0.72, groundLevel, 2.3, -1);
         agentA.isSpeaking = true;
 
+        // Autonomous Theatrical Pacing Controller
+        let lastPacingDecisionTime = 0;
+        function updateAutonomousStagePacing(time) {
+            if (!autoPacingEnabled || sceneHalted) return;
+
+            // Make a theatrical movement decision every 4-6 seconds
+            if (time - lastPacingDecisionTime > 4.5) {
+                lastPacingDecisionTime = time;
+
+                const centerStage = window.innerWidth * 0.5;
+                const stageLeft = window.innerWidth * 0.22;
+                const stageRight = window.innerWidth * 0.78;
+
+                // Dominant character (Status >= 7) steps forward to confront or patrol
+                if (agentA.status >= 7.0) {
+                    if (agentA.isSpeaking) {
+                        // Strides forward into center stage
+                        agentA.targetX = centerStage - 80 + (Math.random() * 60);
+                    } else {
+                        // Returns to commanding posture
+                        agentA.targetX = stageLeft + (Math.random() * 70);
+                    }
+                }
+
+                // Submissive or agitated character retreats or paces nervously
+                if (agentB.status < 5.0) {
+                    if (agentB.isSpeaking) {
+                        // Anxious pacing: steps toward center, then retreats
+                        agentB.targetX = centerStage + 110 + (Math.random() * 80);
+                    } else {
+                        // Backs away toward stage right border
+                        agentB.targetX = stageRight - (Math.random() * 60);
+                    }
+                } else {
+                    // Status Clash: Both step into tight confrontation zone!
+                    agentB.targetX = centerStage + 60;
+                    agentA.targetX = centerStage - 60;
+                }
+            }
+        }
+
         // Render Loop
-        let lastTime = 0;
+        let lastFrameTime = performance.now();
         let frameCount = 0;
-        let lastFpsUpdate = 0;
+        let lastFpsUpdate = performance.now();
 
         function animate(timestamp) {
+            const dt = Math.min(0.05, (timestamp - lastFrameTime) * 0.001);
+            lastFrameTime = timestamp;
             const time = timestamp * 0.001;
+
             frameCount++;
             if (timestamp - lastFpsUpdate >= 1000) {
                 document.getElementById('fps-badge').textContent = `FPS: ${frameCount}`;
@@ -403,20 +570,20 @@
                 lastFpsUpdate = timestamp;
             }
 
-            // Clear Background
+            // Clear Canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Draw Stage Horizon Floor
             ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
-            ctx.lineWidth = 1;
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
             ctx.moveTo(0, groundLevel);
             ctx.lineTo(window.innerWidth, groundLevel);
             ctx.stroke();
 
-            // Alternate speaking turn every 4 seconds for natural improv
+            // Alternate speaking turn every 5 seconds for natural improv
             if (!sceneHalted) {
-                const turnCycle = Math.floor(time / 4) % 2;
+                const turnCycle = Math.floor(time / 5) % 2;
                 agentA.isSpeaking = (turnCycle === 0);
                 agentB.isSpeaking = (turnCycle === 1);
 
@@ -426,11 +593,12 @@
                     document.getElementById('subtitles').textContent = '"The Duke will not be dining tonight, sir. Look at your boots."';
                 }
 
-                agentA.update(time, dramaticTension);
-                agentB.update(time, dramaticTension);
+                updateAutonomousStagePacing(time);
+                agentA.update(time, dramaticTension, dt);
+                agentB.update(time, dramaticTension, dt);
             }
 
-            // Render Characters
+            // Render Both Characters
             agentA.draw(ctx, time, lineWobbleFactor, dramaticTension);
             agentB.draw(ctx, time, lineWobbleFactor, dramaticTension);
 
@@ -449,12 +617,28 @@
                 ctx.fillText("⚡ FORUM THEATRE: SPECT-ACTOR INTERVENTION (SCENE HALTED) ⚡", window.innerWidth * 0.5, 90);
                 ctx.font = "14px -apple-system, sans-serif";
                 ctx.fillStyle = "#cbd5e1";
-                ctx.fillText("Pre-crisis snapshot preserved. Substitute actor hot-swap active.", window.innerWidth * 0.5, 118);
+                ctx.fillText("Pre-crisis snapshot preserved. Locomotion and speech paused for audience substitution.", window.innerWidth * 0.5, 118);
             }
 
             requestAnimationFrame(animate);
         }
         requestAnimationFrame(animate);
+
+        // Click on Stage Horizon to Command Character Walking
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            
+            // Move whichever character is currently speaking or closer
+            const distA = Math.abs(clickX - agentA.rootX);
+            const distB = Math.abs(clickX - agentB.rootX);
+
+            if (agentA.isSpeaking || distA < distB) {
+                agentA.targetX = Math.max(50, Math.min(window.innerWidth - 50, clickX));
+            } else {
+                agentB.targetX = Math.max(50, Math.min(window.innerWidth - 50, clickX));
+            }
+        });
 
         // UI Event Listeners
         const sliderTension = document.getElementById('slider-tension');
@@ -478,18 +662,33 @@
             document.getElementById('val-wobble').textContent = lineWobbleFactor.toFixed(1);
         });
 
+        const btnPacing = document.getElementById('btn-pacing');
+        btnPacing.addEventListener('click', () => {
+            autoPacingEnabled = !autoPacingEnabled;
+            btnPacing.textContent = autoPacingEnabled ? "AUTO PACING: ON" : "AUTO PACING: OFF";
+            btnPacing.classList.toggle('active', autoPacingEnabled);
+        });
+
+        const btnConfront = document.getElementById('btn-confront');
+        btnConfront.addEventListener('click', () => {
+            const center = window.innerWidth * 0.5;
+            agentA.targetX = center - 60;
+            agentB.targetX = center + 60;
+            agentA.status = 9.0;
+            agentB.status = 7.5; // Trigger intense status clash!
+        });
+
         const btnIntervene = document.getElementById('btn-intervene');
         btnIntervene.addEventListener('click', () => {
             sceneHalted = !sceneHalted;
-            btnIntervene.textContent = sceneHalted ? "RESUME SCENE" : "FORUM STOP! (INTERVENE)";
-            btnIntervene.style.background = sceneHalted ? "#ef4444" : "#2563eb";
+            btnIntervene.textContent = sceneHalted ? "RESUME SCENE" : "FORUM STOP!";
+            btnIntervene.style.background = sceneHalted ? "#ef4444" : "#b91c1c";
         });
 
         // ---------------------------------------------------------------------
-        // Native EventSource (SSE) & WebSocket Telemetry Connection to ALIPS Backend
+        // Native EventSource (SSE) Telemetry Listener from ALIPS Python Backend
         // ---------------------------------------------------------------------
         function connectTelemetry() {
-            // 1. Try Server-Sent Events (SSE) - Zero dependencies, native in all browsers
             const evtSource = new EventSource('/stream');
             evtSource.onmessage = (event) => {
                 try {
@@ -517,8 +716,7 @@
                 }
             };
             evtSource.onerror = () => {
-                // If SSE is unreachable, fallback to WebSocket
-                console.log("SSE disconnected, attempting WebSocket fallback...");
+                console.log("SSE reconnecting...");
             };
         }
         connectTelemetry();
