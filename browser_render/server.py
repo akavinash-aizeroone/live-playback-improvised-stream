@@ -388,6 +388,7 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
                 "prompt_words": prompt_words,
                 "scene": scene_key,
                 "technique": gen_result.get("technique", technique.value),
+                "transmuted_subtext": gen_result.get("transmuted_subtext", ""),
                 "value_shift": gen_result.get("value_shift", "+ to -"),
                 "dramaturgical_analysis": gen_result.get("dramaturgical_analysis", ""),
                 "key_used": gen_result.get("key_used", "unknown"),
@@ -484,6 +485,11 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
         elif clean_path == "/api/story/techniques":
             techniques = [
                 {
+                    "id": "SUBTEXT_CATALYST",
+                    "name": "Hemingway / Stanislavski: Subtext Catalyst",
+                    "description": "Transmutes spectator offer into hidden subtext and organic motives without literal quotation."
+                },
+                {
                     "id": "JOHNSTONE_STATUS_TILT",
                     "name": "Keith Johnstone: Improv Status Tilt",
                     "description": "Explosive status seesaw shift and narrative tilt without breaking character."
@@ -502,6 +508,11 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
                     "id": "MCKEE_VALUE_SHIFT",
                     "name": "Robert McKee: Story Value Shift",
                     "description": "Classical screenwriting beat progression with positive/negative valence transitions."
+                },
+                {
+                    "id": "CHEKHOV_GUN_PAYOFF",
+                    "name": "Anton Chekhov: Gun Plant & Payoff",
+                    "description": "Plants an unspoken crisis in beat 1 and detonates it with climactic inevitability."
                 }
             ]
             self.send_response(200)

@@ -586,10 +586,12 @@
             <div class="improv-input-row">
                 <input type="text" id="improv-word-input" placeholder="Type words, secrets, or plot twists to improvise the story in real-time (e.g. 'poisoned coffee', 'classified radar logs')..." autocomplete="off" />
                 <select id="improv-technique" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; padding:7px 10px; border-radius:8px; font-size:12px; outline:none; font-weight:600;">
-                    <option value="JOHNSTONE_STATUS_TILT" selected>🎭 Johnstone: Status Tilt</option>
-                    <option value="BOAL_FORUM_INTERVENTION">✊ Boal: Forum Intervention</option>
-                    <option value="FOX_PLAYBACK_RITUAL">🕯️ Fox: Playback Ritual</option>
-                    <option value="MCKEE_VALUE_SHIFT">🎬 McKee: Story Value Shift</option>
+                    <option value="SUBTEXT_CATALYST" selected>🧊 Subtext Catalyst (Hemingway / No Quoting)</option>
+                    <option value="JOHNSTONE_STATUS_TILT">🎭 Johnstone: Status Seesaw & Tilt</option>
+                    <option value="BOAL_FORUM_INTERVENTION">✊ Boal: Forum Intervention Tactic</option>
+                    <option value="FOX_PLAYBACK_RITUAL">🕯️ Fox: Playback Emotional Pairs</option>
+                    <option value="MCKEE_VALUE_SHIFT">🎬 McKee: Story Value Shift (+/-)</option>
+                    <option value="CHEKHOV_GUN_PAYOFF">💣 Chekhov: Gun Plant & Climax</option>
                 </select>
                 <button id="btn-improvise-send" class="btn-improv">🚀 IMPROVISE WITH MISTRAL</button>
             </div>
@@ -2154,7 +2156,8 @@
                             mistralKeyBadge.textContent = `⚡ Key: ${data.key_used || 'rotating'} • ${data.duration_ms || 0}ms`;
                         }
                         if (theatricalAnalysisBadge) {
-                            theatricalAnalysisBadge.textContent = `🎭 ${data.technique || tech} [${data.value_shift || '+ to -'}]: ${data.dramaturgical_analysis || 'Diegetic Offer'}`;
+                            const sub = data.transmuted_subtext ? `[Subtext: ${data.transmuted_subtext}] ` : '';
+                            theatricalAnalysisBadge.textContent = `🎭 ${data.technique || tech} [${data.value_shift || '+ to -'}]: ${sub}${data.dramaturgical_analysis || ''}`;
                         }
                         showDirectorToast(`✨ ${data.key_used || 'Mistral'} [${data.duration_ms}ms]: ${data.technique || tech}`);
                     }
