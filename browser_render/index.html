@@ -172,7 +172,7 @@
         }
         #subtitles {
             position: absolute;
-            bottom: 85px;
+            bottom: 165px;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
@@ -212,6 +212,126 @@
             font-size: 11px;
             color: #38bdf8;
             font-weight: 600;
+        }
+        #director-toast {
+            position: absolute;
+            top: 75px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.94);
+            border: 1px solid #38bdf8;
+            color: #f8fafc;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 24px rgba(56, 189, 248, 0.35);
+            backdrop-filter: blur(14px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(-8px);
+            z-index: 45;
+        }
+        #director-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #improv-director-bar {
+            position: absolute;
+            bottom: 78px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.94);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 18px rgba(56, 189, 248, 0.18);
+            padding: 10px 18px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 860px;
+            z-index: 35;
+            backdrop-filter: blur(16px);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .improv-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .improv-title {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            color: #38bdf8;
+            text-transform: uppercase;
+        }
+        .improv-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .chip {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #cbd5e1;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .chip:hover {
+            background: rgba(56, 189, 248, 0.25);
+            border-color: #38bdf8;
+            color: #ffffff;
+            transform: translateY(-1px);
+        }
+        .improv-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #improv-word-input {
+            flex: 1;
+            background: #090d16;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        #improv-word-input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+        }
+        #improv-intensity {
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #475569;
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+        }
+        .btn-improv {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: white;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+        }
+        .btn-improv:hover {
+            background: linear-gradient(135deg, #0369a1, #1d4ed8);
+            transform: translateY(-1px);
         }
         #intervention-modal {
             position: absolute;
@@ -300,6 +420,33 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
                 <div id="intervention-feedback" style="font-size:11px; color:#38bdf8;">Awaiting spect-actor intervention...</div>
                 <button id="btn-submit-intervention" style="background:#22c55e;">🎙 INJECT IMPROV LINE & RUN</button>
+            </div>
+        </div>
+
+        <!-- Live Applied AI Story Director Toast Banner -->
+        <div id="director-toast">🎭 IMPROVISING SCENE...</div>
+
+        <!-- Live Applied AI Story Improvisation Director Bar -->
+        <div id="improv-director-bar">
+            <div class="improv-header">
+                <span class="improv-title">⚡ LIVE STORY IMPROVISATION DIRECTOR (APPLIED AI)</span>
+                <div class="improv-chips">
+                    <span class="chip" data-word="poisoned coffee">☕ Poisoned Coffee</span>
+                    <span class="chip" data-word="stolen diamond">💍 Stolen Diamond</span>
+                    <span class="chip" data-word="I am your brother">🩸 Secret Brother</span>
+                    <span class="chip" data-word="alien transmission">👽 Alien Secret</span>
+                    <span class="chip" data-word="FBI wiretap">🚨 FBI Wiretap</span>
+                    <span class="chip" data-word="armed detonator">💣 Detonator</span>
+                </div>
+            </div>
+            <div class="improv-input-row">
+                <input type="text" id="improv-word-input" placeholder="Type words, secrets, or plot twists to improvise the story in real-time (e.g. 'poisoned coffee', 'I am your brother')..." autocomplete="off" />
+                <select id="improv-intensity">
+                    <option value="tilt" selected>💥 Narrative Tilt (Dramatic Twist)</option>
+                    <option value="subtle">🤝 "Yes, and..." (Subtle Weave)</option>
+                    <option value="chaos">🔥 Full Disruption (Chaos Climax)</option>
+                </select>
+                <button id="btn-improvise-send" class="btn-improv">🚀 IMPROVISE NOW</button>
             </div>
         </div>
 
@@ -1604,6 +1751,228 @@
                     }
                 }, 2200);
             }
+        });
+
+        // ---------------------------------------------------------------------
+        // APPLIED AI LIVE STORY IMPROVISATION DIRECTOR ENGINE
+        // ---------------------------------------------------------------------
+        function showDirectorToast(msg) {
+            const toast = document.getElementById('director-toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast.timer);
+            toast.timer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3500);
+        }
+
+        function generateClientImprovBeats(sceneKey, cleanWord, currentBeatId) {
+            if (sceneKey === "pulp_fiction") {
+                return [
+                    {
+                        id: currentBeatId + 1,
+                        speaker: "A",
+                        dialogue: `Hold on a second. Did you just say '${cleanWord}'?! Vincent, look at me. Did this boy just bring up '${cleanWord}'?!`,
+                        statusA: 9.4, statusB: 2.0, tension: 0.88, targetA: 0.52, targetB: 0.70,
+                        gestureA: "DRAW_PISTOL", gestureB: "FLINCH_TERROR",
+                        camZoom: 1.7, camLabel: "IMPROV TILT: " + cleanWord.slice(0, 14).toUpperCase(),
+                        shake: 0.5, improvised: true
+                    },
+                    {
+                        id: currentBeatId + 2,
+                        speaker: "B",
+                        dialogue: `Jules, I swear on my life! Marcellus Wallace told us the '${cleanWord}' was already taken care of in the cupboard!`,
+                        statusA: 9.2, statusB: 3.8, tension: 0.94, targetA: 0.54, targetB: 0.70,
+                        gestureA: "ROAR_AIM", gestureB: "PLEADING_TERROR",
+                        camZoom: 1.9, camLabel: "SPECT-ACTOR REACTION",
+                        shake: 0.7, improvised: true
+                    },
+                    {
+                        id: currentBeatId + 3,
+                        speaker: "A",
+                        dialogue: `Well then today is your reckoning day with '${cleanWord}'! Because the Lord does not negotiate over '${cleanWord}'!`,
+                        statusA: 10.0, statusB: 1.0, tension: 1.0, targetA: 0.58, targetB: 0.70,
+                        gestureA: "ROAR_EZEKIEL_CLIMAX", gestureB: "FLINCH_TERROR",
+                        camZoom: 2.1, camLabel: "IMPROVISED CLIMAX",
+                        shake: 1.1, improvised: true
+                    }
+                ];
+            } else if (sceneKey === "a_few_good_men") {
+                return [
+                    {
+                        id: currentBeatId + 1,
+                        speaker: "A",
+                        dialogue: `Colonel Jessep, isn't it true that '${cleanWord}' was the exact pretext used to authorize the transfer order?`,
+                        statusA: 8.8, statusB: 9.2, tension: 0.85, targetA: 0.50, targetB: 0.72,
+                        gestureA: "POINT", gestureB: "GLARE",
+                        camZoom: 1.5, camLabel: "IMPROV TILT: " + cleanWord.slice(0, 14).toUpperCase(),
+                        shake: 0.4, improvised: true
+                    },
+                    {
+                        id: currentBeatId + 2,
+                        speaker: "B",
+                        dialogue: `You sit there in your crisp whites and lecture me about '${cleanWord}'?! '${cleanWord}' saved lives at Windward Point!`,
+                        statusA: 8.5, statusB: 10.0, tension: 0.96, targetA: 0.50, targetB: 0.70,
+                        gestureA: "STAND_FIRM", gestureB: "ROAR",
+                        camZoom: 1.85, camLabel: "JESSEP ROAR SURGE",
+                        shake: 0.9, improvised: true
+                    }
+                ];
+            } else if (sceneKey === "dark_knight") {
+                return [
+                    {
+                        id: currentBeatId + 1,
+                        speaker: "A",
+                        dialogue: `Where did you hide the '${cleanWord}'?! Tell me!`,
+                        statusA: 9.2, statusB: 9.8, tension: 0.90, targetA: 0.52, targetB: 0.68,
+                        gestureA: "SLAM_TABLE", gestureB: "LAUGH_LEAN",
+                        camZoom: 1.7, camLabel: "IMPROV TILT: " + cleanWord.slice(0, 14).toUpperCase(),
+                        shake: 0.7, improvised: true
+                    },
+                    {
+                        id: currentBeatId + 2,
+                        speaker: "B",
+                        dialogue: `You see, Batman... to them, '${cleanWord}' is just another bad joke waiting to tear through their civilized order!`,
+                        statusA: 7.5, statusB: 10.0, tension: 0.98, targetA: 0.52, targetB: 0.68,
+                        gestureA: "STILL", gestureB: "DELIGHTED_CHAOS",
+                        camZoom: 1.95, camLabel: "JOKER PHILOSOPHICAL REVERSAL",
+                        shake: 0.5, improvised: true
+                    }
+                ];
+            } else if (sceneKey === "whiplash") {
+                return [
+                    {
+                        id: currentBeatId + 1,
+                        speaker: "A",
+                        dialogue: `Stop! You think '${cleanWord}' excuses you dragging four beats behind my tempo?!`,
+                        statusA: 10.0, statusB: 3.0, tension: 0.92, targetA: 0.54, targetB: 0.72,
+                        gestureA: "LEAN_INTO_FACE", gestureB: "TREMBLING_HANDS",
+                        camZoom: 1.75, camLabel: "IMPROV TILT: " + cleanWord.slice(0, 14).toUpperCase(),
+                        shake: 0.6, improvised: true
+                    },
+                    {
+                        id: currentBeatId + 2,
+                        speaker: "B",
+                        dialogue: `It wasn't '${cleanWord}', Mr. Fletcher! I was playing on tempo until my hands bled!`,
+                        statusA: 9.5, statusB: 4.5, tension: 0.98, targetA: 0.54, targetB: 0.72,
+                        gestureA: "RAISE_FIST_HALT", gestureB: "TENSE_DRUMSTICKS",
+                        camZoom: 1.9, camLabel: "NEIMAN DEFIANCE",
+                        shake: 0.8, improvised: true
+                    }
+                ];
+            } else if (sceneKey === "social_network") {
+                return [
+                    {
+                        id: currentBeatId + 1,
+                        speaker: "A",
+                        dialogue: `You told Peter Thiel that '${cleanWord}' was my responsibility while you diluted my equity to zero!`,
+                        statusA: 9.5, statusB: 6.0, tension: 0.92, targetA: 0.52, targetB: 0.70,
+                        gestureA: "SLAM_TABLE", gestureB: "MONOTONE_GLARE",
+                        camZoom: 1.6, camLabel: "IMPROV TILT: " + cleanWord.slice(0, 14).toUpperCase(),
+                        shake: 0.6, improvised: true
+                    },
+                    {
+                        id: currentBeatId + 2,
+                        speaker: "B",
+                        dialogue: `The '${cleanWord}' didn't scale, Eduardo. Facebook is moving at light speed, and your '${cleanWord}' was left in Boston.`,
+                        statusA: 8.0, statusB: 9.0, tension: 0.95, targetA: 0.52, targetB: 0.70,
+                        gestureA: "SHATTER_LAPTOP", gestureB: "MONOTONE",
+                        camZoom: 1.8, camLabel: "ZUCKERBERG COLD DETACHMENT",
+                        shake: 0.7, improvised: true
+                    }
+                ];
+            } else {
+                return [
+                    {
+                        id: currentBeatId + 1,
+                        speaker: "A",
+                        dialogue: `Good heavens! What on earth does '${cleanWord}' have to do with the Grand Duke's affairs?!`,
+                        statusA: 6.5, statusB: 6.0, tension: 0.82, targetA: 0.42, targetB: 0.65,
+                        gestureA: "SHOCK", gestureB: "STAND_TALL",
+                        camZoom: 1.4, camLabel: "IMPROV TILT: " + cleanWord.slice(0, 14).toUpperCase(),
+                        shake: 0.4, improvised: true
+                    },
+                    {
+                        id: currentBeatId + 2,
+                        speaker: "B",
+                        dialogue: `Everything, sir! The '${cleanWord}' was found locked under the floorboards in the master suite!`,
+                        statusA: 3.0, statusB: 9.0, tension: 0.95, targetA: 0.45, targetB: 0.60,
+                        gestureA: "FALL_KNEE", gestureB: "TRIUMPH",
+                        camZoom: 1.7, camLabel: "SPECT-ACTOR REVERSAL",
+                        shake: 0.8, improvised: true
+                    }
+                ];
+            }
+        }
+
+        async function triggerLiveImprov(word, intensity = "tilt") {
+            foley.init();
+            if (!word || !word.trim()) return;
+            const cleanWord = word.trim();
+            const sp = SCREENPLAYS[currentScreenplayKey];
+
+            showDirectorToast(`🎭 Improvising Story with: "${cleanWord}"...`);
+
+            let newBeats = null;
+            try {
+                const res = await fetch('/api/improvise', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        scene: currentScreenplayKey,
+                        prompt_words: cleanWord,
+                        intensity: intensity,
+                        current_beat_id: currentBeatIndex + 1
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.improvised_beats && data.improvised_beats.length > 0) {
+                        newBeats = data.improvised_beats;
+                    }
+                }
+            } catch (e) {
+                console.warn("Using client-side Applied AI fallback:", e);
+            }
+
+            if (!newBeats) {
+                newBeats = generateClientImprovBeats(currentScreenplayKey, cleanWord, currentBeatIndex + 1);
+            }
+
+            // Splice new beats right after current beat
+            sp.beats.splice(currentBeatIndex + 1, 0, ...newBeats);
+
+            // Jump to first improvised beat immediately!
+            applyBeat(currentBeatIndex + 1);
+        }
+
+        const improvInput = document.getElementById('improv-word-input');
+        const btnImprovSend = document.getElementById('btn-improvise-send');
+        const improvIntensity = document.getElementById('improv-intensity');
+
+        btnImprovSend.addEventListener('click', () => {
+            const val = improvInput.value;
+            if (val) {
+                triggerLiveImprov(val, improvIntensity.value);
+                improvInput.value = '';
+            }
+        });
+
+        improvInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const val = improvInput.value;
+                if (val) {
+                    triggerLiveImprov(val, improvIntensity.value);
+                    improvInput.value = '';
+                }
+            }
+        });
+
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                const word = chip.getAttribute('data-word');
+                triggerLiveImprov(word, improvIntensity.value);
+            });
         });
 
         // Initialize with Quentin Tarantino's Pulp Fiction (Ezekiel 25:17)
