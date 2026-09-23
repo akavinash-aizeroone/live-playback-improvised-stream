@@ -12,6 +12,7 @@ from perception.clustering import SemanticClusteringPerceptionEngine
 from dramaturgy.governor import PIDTensionGovernor
 from dramaturgy.state_machine import JohnstoneStatusSeesaw, ReincorporationLedger, BoalForumGovernor
 from audio_rig.barge_in import AudioBargeInController, LiveLinkFaceEncoder, VTubeStudioJsonRPC
+from observability import logged
 
 class AutonomousImprovStreamOrchestrator:
     def __init__(self):
@@ -46,6 +47,7 @@ class AutonomousImprovStreamOrchestrator:
         self.reincorporation.record_element("Grand Duke's Silver Spoon", "PROP", introduced_turn=1)
         self.reincorporation.record_element("The Secret Oath of St. Jude", "VOW", introduced_turn=1)
 
+    @logged(event="pipeline_process_chat_batch", service="stream-pipeline")
     def process_chat_batch(self, raw_comments: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         1. Multi-Stage Fast Sanitization
@@ -84,6 +86,7 @@ class AutonomousImprovStreamOrchestrator:
             "perception_xml": xml_snapshot
         }
 
+    @logged(event="pipeline_dramaturgical_tick", service="stream-pipeline")
     def run_dramaturgical_tick(self, observed_tension: float, speaker: str, status_move: str) -> Dict[str, Any]:
         """
         Evaluates dramatic pacing via PID tension governor and updates Johnstone status balance.
@@ -98,6 +101,7 @@ class AutonomousImprovStreamOrchestrator:
             "dangling_callbacks": dangling_callbacks
         }
 
+    @logged(event="pipeline_simulate_barge_in", service="stream-pipeline")
     def simulate_barge_in(self, high_priority_event: Dict[str, Any]) -> Dict[str, Any]:
         """
         Handles P0 SuperChat or raid event:

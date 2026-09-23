@@ -20,6 +20,8 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from pipeline import AutonomousImprovStreamOrchestrator
+from dramaturgy.playback_theatre import JonathanFoxPlaybackEngine
+from observability import LOGGER, LogLevel, logged, trace_span, TelemetryStorageEngine
 
 class TelemetryEngine:
     def __init__(self):
@@ -312,7 +314,45 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_POST(self):
-        if self.path == "/api/improvise":
+        if self.path == "/api/playback":
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
+            try:
+                data = json.loads(body)
+            except Exception:
+                data = {}
+
+            teller_prompt = data.get("teller_prompt", "").strip() or data.get("prompt_words", "").strip()
+            starting_beat_id = int(data.get("starting_beat_id", 1))
+
+            start_t = time.perf_counter()
+            with trace_span("api_playback_theatre_generate", service="server-api", attributes={"prompt": teller_prompt}):
+                playback_beats = JonathanFoxPlaybackEngine.generate_full_ritual(
+                    teller_prompt=teller_prompt,
+                    starting_beat_id=starting_beat_id
+                )
+                duration_ms = (time.perf_counter() - start_t) * 1000.0
+
+            LOGGER.increment("api.playback.requests", labels={"status": "success"})
+            LOGGER.timing("api.playback.latency_ms", duration_ms)
+
+            response = {
+                "success": True,
+                "ritual_type": "JONATHAN_FOX_PLAYBACK_THEATRE",
+                "teller_prompt": teller_prompt,
+                "beat_count": len(playback_beats),
+                "playback_beats": playback_beats,
+                "duration_ms": round(duration_ms, 2)
+            }
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(response).encode("utf-8"))
+            return
+
+        elif self.path == "/api/improvise":
             content_length = int(self.headers.get("Content-Length", 0))
             body = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
             try:
@@ -325,18 +365,25 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
             intensity = data.get("intensity", "tilt")
             current_beat_id = int(data.get("current_beat_id", 1))
 
-            new_beats = AppliedAIImprovGenerator.generate(
-                scene_key=scene_key,
-                user_word=prompt_words,
-                intensity=intensity,
-                current_beat_id=current_beat_id
-            )
+            start_t = time.perf_counter()
+            with trace_span("api_improvise_generate", service="server-api", attributes={"scene": scene_key, "words": prompt_words}):
+                new_beats = AppliedAIImprovGenerator.generate(
+                    scene_key=scene_key,
+                    user_word=prompt_words,
+                    intensity=intensity,
+                    current_beat_id=current_beat_id
+                )
+                duration_ms = (time.perf_counter() - start_t) * 1000.0
+
+            LOGGER.increment("api.improvise.requests", labels={"scene": scene_key})
+            LOGGER.timing("api.improvise.latency_ms", duration_ms)
 
             response = {
                 "success": True,
                 "prompt_words": prompt_words,
                 "scene": scene_key,
-                "improvised_beats": new_beats
+                "improvised_beats": new_beats,
+                "duration_ms": round(duration_ms, 2)
             }
 
             self.send_response(200)
@@ -350,7 +397,10 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path == "/" or self.path == "/index.html":
+        # Route query parameters
+        clean_path = self.path.split("?")[0]
+
+        if clean_path == "/" or clean_path == "/index.html":
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
@@ -358,7 +408,60 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(f.read())
             return
 
-        elif self.path == "/stream":
+        elif clean_path == "/api/logs":
+            import urllib.parse
+            parsed = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(parsed.query)
+
+            level = params.get("level", [None])[0]
+            service = params.get("service", [None])[0]
+            trace_id = params.get("trace", [None])[0]
+            event = params.get("event", [None])[0]
+            limit = int(params.get("limit", [50])[0])
+
+            storage = TelemetryStorageEngine()
+            logs = storage.query_logs(
+                level=level,
+                service=service,
+                trace_id=trace_id,
+                event=event,
+                limit=limit
+            )
+
+            res = {
+                "success": True,
+                "count": len(logs),
+                "logs": logs
+            }
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(res).encode("utf-8"))
+            return
+
+        elif clean_path == "/api/metrics":
+            storage = TelemetryStorageEngine()
+            stats = storage.get_storage_stats()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": True, "stats": stats}).encode("utf-8"))
+            return
+
+        elif clean_path.startswith("/api/trace/"):
+            trace_id = clean_path.split("/")[-1]
+            storage = TelemetryStorageEngine()
+            trace_data = storage.query_trace(trace_id)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": True, "trace": trace_data}).encode("utf-8"))
+            return
+
+        elif clean_path == "/stream":
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream")
             self.send_header("Cache-Control", "no-cache")
@@ -366,6 +469,7 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
 
+            LOGGER.increment("sse.connections.active")
             try:
                 while True:
                     payload = ENGINE.get_next_telemetry_tick()
@@ -378,6 +482,7 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         super().do_GET()
+
 
 class ThreadingTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     allow_reuse_address = True

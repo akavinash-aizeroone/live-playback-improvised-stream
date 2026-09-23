@@ -361,10 +361,92 @@
             letter-spacing: 0.5px;
             font-weight: 800;
         }
+
+        /* Jonathan Fox Playback Theatre Modal */
+        #playback-ritual-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(15, 23, 42, 0.98);
+            border: 2px solid #8b5cf6;
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.45);
+            padding: 22px 26px;
+            border-radius: 14px;
+            width: 90%;
+            max-width: 620px;
+            z-index: 52;
+            backdrop-filter: blur(20px);
+            color: #f8fafc;
+        }
+
+        /* OpenTelemetry Observability Drawer */
+        #otel-drawer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 480px;
+            max-width: 92vw;
+            height: 100%;
+            background: rgba(10, 15, 29, 0.96);
+            border-left: 1px solid #14b8a6;
+            box-shadow: -10px 0 40px rgba(0,0,0,0.8);
+            z-index: 60;
+            backdrop-filter: blur(24px);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            color: #f8fafc;
+            box-sizing: border-box;
+        }
+        #otel-drawer.open {
+            transform: translateX(0);
+        }
+        .otel-stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .otel-stat-card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .otel-stat-title {
+            font-size: 10px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .otel-stat-val {
+            font-size: 15px;
+            font-weight: 700;
+            color: #2dd4bf;
+            margin-top: 4px;
+        }
+        .log-entry {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 11px;
+            padding: 8px 10px;
+            background: rgba(15, 23, 42, 0.75);
+            border-left: 3px solid #38bdf8;
+            margin-bottom: 6px;
+            border-radius: 4px;
+            line-height: 1.4;
+        }
+        .log-entry.level-INFO { border-color: #38bdf8; }
+        .log-entry.level-WARN { border-color: #fbbf24; }
+        .log-entry.level-ERROR { border-color: #ef4444; }
+        .log-entry.level-DEBUG { border-color: #94a3b8; }
     </style>
 </head>
 <body>
     <div id="stage-container">
+
         <canvas id="stage"></canvas>
 
         <div id="top-bar">
@@ -373,10 +455,12 @@
                 <div class="badge" id="beat-badge">BEAT: 1 / 17</div>
                 <div class="badge" id="tension-badge">TENSION: 0.40</div>
                 <div class="badge" id="camera-badge">CAM: APARTMENT ENTRANCE WIDE (1.0x)</div>
+                <div class="badge" id="playback-phase-badge" style="display:none; background:#7c3aed; color:#fff; font-weight:800;">PHASE: TELLER'S OFFERING</div>
             </div>
             <div class="overlay-group">
                 <select id="scene-select">
                     <option value="pulp_fiction" selected>🎬 Quentin Tarantino: Pulp Fiction (1994) - "Ezekiel 25:17" Apartment Climax</option>
+                    <option value="playback_theatre">🎭 Jonathan Fox: Playback Theatre Ritual (Fluid Sculptures, Pairs, Tabloid)</option>
                     <option value="a_few_good_men">🎬 Aaron Sorkin: A Few Good Men (1992) - "Code Red" Courtroom Climax</option>
                     <option value="dark_knight">🎬 Christopher Nolan: The Dark Knight (2008) - Batman vs. Joker Interrogation</option>
                     <option value="whiplash">🎬 Damien Chazelle: Whiplash (2014) - "Not Quite My Tempo" Rehearsal</option>
@@ -423,6 +507,66 @@
             </div>
         </div>
 
+        <!-- Jonathan Fox Playback Theatre Ritual Modal -->
+        <div id="playback-ritual-modal" style="display:none;">
+            <div class="modal-header">
+                <h4 style="color:#a855f7;">🎭 JONATHAN FOX PLAYBACK THEATRE: THE TELLER'S OFFERING</h4>
+                <button id="playback-modal-close" style="padding:2px 8px; font-size:12px; background:#475569;">✕</button>
+            </div>
+            <p style="font-size:12px; color:#cbd5e1; margin: 10px 0 8px 0; line-height: 1.4;">
+                In Playback Theatre, a <strong>Teller</strong> shares a personal moment or feeling. The <strong>Conductor</strong> distills the underlying emotional polarity, and the Actors honor the story through <em>Fluid Sculptures</em>, <em>Pairs</em>, and a transformative <em>Narrative Arc</em>, ending in a crystallized <em>Closing Tabloid</em>.
+            </p>
+            <div style="font-size:11px; color:#94a3b8; margin-bottom:6px; font-weight:600;">RECOMMENDED TELLER OFFERINGS:</div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+                <span class="chip playback-chip" data-offering="The cold station platform after saying a final goodbye">🌧️ Rainy Farewell</span>
+                <span class="chip playback-chip" data-offering="Felt completely invisible and talked over in the executive meeting">💼 Office Invisibility</span>
+                <span class="chip playback-chip" data-offering="The sudden realization that someone I trusted lied to protect themselves">💔 Broken Trust</span>
+                <span class="chip playback-chip" data-offering="The terrifying urge to confess my feelings before it was too late">🕊️ Unspoken Longing</span>
+                <span class="chip playback-chip" data-offering="The moment of quiet fire when I refused to bow to intimidation">🔥 Silent Defiance</span>
+            </div>
+            <textarea id="teller-offering-input" placeholder="Type your personal feeling, story, or moment here (e.g. 'Standing in the rain waiting for someone who never came')..." style="width:100%; height:72px; background:#0b1120; color:#f8fafc; border:1px solid #6d28d9; border-radius:6px; padding:10px; font-size:13px; font-family:inherit; resize:none; outline:none; box-sizing:border-box;"></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+                <div id="playback-ritual-feedback" style="font-size:11px; color:#c084fc;">Awaiting Teller's Offering...</div>
+                <button id="btn-initiate-playback" style="background:#7c3aed; color:#fff; font-weight:700; padding:8px 16px;">🚀 INITIATE PLAYBACK RITUAL</button>
+            </div>
+        </div>
+
+        <!-- OpenTelemetry Observability & Zero-Deletion Telemetry Drawer -->
+        <div id="otel-drawer">
+            <div class="modal-header">
+                <h4 style="color:#2dd4bf;">📊 OPENTELEMETRY OBSERVABILITY HUD</h4>
+                <button id="otel-drawer-close" style="padding:2px 8px; font-size:12px; background:#475569;">✕</button>
+            </div>
+            <div style="font-size:11px; color:#94a3b8; margin: 8px 0 4px 0;">
+                Production-grade OpenTelemetry Standard • SQLite WAL Zero-Deletion Archive • Zstandard + MessagePack (85-92% Compression)
+            </div>
+            <div class="otel-stats-grid">
+                <div class="otel-stat-card">
+                    <div class="otel-stat-title">Total Records</div>
+                    <div class="otel-stat-val" id="otel-stat-records">--</div>
+                </div>
+                <div class="otel-stat-card">
+                    <div class="otel-stat-title">Disk Footprint (WAL)</div>
+                    <div class="otel-stat-val" id="otel-stat-disk">-- MB</div>
+                </div>
+                <div class="otel-stat-card">
+                    <div class="otel-stat-title">Compression Engine</div>
+                    <div class="otel-stat-val" style="font-size:12px; color:#a7f3d0;" id="otel-stat-engine">zstd+msgpack</div>
+                </div>
+                <div class="otel-stat-card">
+                    <div class="otel-stat-title">GDPR / DPDP Compliance</div>
+                    <div class="otel-stat-val" style="font-size:12px; color:#38bdf8;">🛡️ PII Scrubbed</div>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:11px; font-weight:700; color:#38bdf8;">LIVE STRUCTURED LOG STREAM</span>
+                <button id="btn-refresh-otel" style="padding:3px 10px; font-size:11px; background:#0f766e;">🔄 REFRESH</button>
+            </div>
+            <div id="otel-logs-container" style="flex:1; overflow-y:auto; border:1px solid #1e293b; border-radius:6px; padding:8px; background:#020617;">
+                <div style="color:#64748b; font-size:11px;">Loading telemetry events...</div>
+            </div>
+        </div>
+
         <!-- Live Applied AI Story Director Toast Banner -->
         <div id="director-toast">🎭 IMPROVISING SCENE...</div>
 
@@ -455,6 +599,8 @@
             <button id="btn-prev">⏮ PREV</button>
             <button id="btn-next">⏭ NEXT</button>
             <button id="btn-foley" class="active">🔊 FOLEY & AUDIO: ON</button>
+            <button id="btn-playback-modal" style="background:#7c3aed;">🎭 PLAYBACK RITUAL</button>
+            <button id="btn-otel-drawer" style="background:#0f766e;">📊 OTEL OBSERVABILITY</button>
             <button id="btn-intervene" class="danger">⚡ FORUM STOP! (INTERVENE)</button>
         </div>
     </div>
@@ -875,6 +1021,24 @@
                     { id: 3, speaker: "A", dialogue: "Silence! Give me that spoon before the watchman arrives!", statusA: 7.5, statusB: 5.5, tension: 0.88, targetA: 0.45, targetB: 0.65, gestureA: "LUNGE", gestureB: "RETREAT", camZoom: 1.5, camLabel: "CORNERED STRUGGLE", shake: 0.3 },
                     { id: 4, speaker: "B", dialogue: "No, sir. Look at your boots—the green flour is all over your shoes.", statusA: 2.5, statusB: 9.5, tension: 0.95, targetA: 0.45, targetB: 0.58, gestureA: "FALL_KNEE", gestureB: "TRIUMPH", camZoom: 1.6, camLabel: "REVERSAL IMPACT" }
                 ]
+            },
+            playback_theatre: {
+                title: "Jonathan Fox Playback Theatre Ritual",
+                writer: "Jonathan Fox & Jo Salas Playback Methodology",
+                location: "The Sacred Theatrical Circle - The Teller's Offering",
+                propType: "PLAYBACK_RITUAL",
+                charA: { name: "ACTOR A (POLARITY 1)", color: "#a855f7", role: "Embodied Polarity 1 / Teller Voice", pitch: 1.05, rate: 1.0 },
+                charB: { name: "ACTOR B (POLARITY 2)", color: "#ec4899", role: "Embodied Polarity 2 / Counter-Force", pitch: 0.95, rate: 0.98 },
+                beats: [
+                    { id: 1, phase: "TELLER_OFFERING", speaker: "CONDUCTOR", dialogue: "Teller, we hear you: 'The day everything shifted'. At the heart of this moment lies Vulnerable Trust wrestling with Guarded Cynicism. Actors... let's watch.", statusA: 5.0, statusB: 5.0, tension: 0.40, targetA: 0.38, targetB: 0.62, gestureA: "STAND_STILL", gestureB: "STAND_STILL", camZoom: 1.2, camLabel: "CONDUCTOR'S INVOCATION", shake: 0.0, foleyCue: "drone_chime" },
+                    { id: 2, phase: "FLUID_SCULPTURE", speaker: "A", dialogue: "I reach out because I cannot stay silent! Every second I hold back, the truth burns louder!", statusA: 8.2, statusB: 3.5, tension: 0.65, targetA: 0.45, targetB: 0.65, gestureA: "PLEADING_REACH", gestureB: "DEFENSIVE_FOLD", camZoom: 1.45, camLabel: "FLUID SCULPTURE: TRUST", shake: 0.3, foleyCue: "heartbeat_slow" },
+                    { id: 3, phase: "FLUID_SCULPTURE", speaker: "B", dialogue: "No. Lock the door. If you open yourself, there is nowhere left to hide.", statusA: 4.0, statusB: 8.5, tension: 0.78, targetA: 0.48, targetB: 0.58, gestureA: "HESITATE_STEP", gestureB: "COLD_BARRIER", camZoom: 1.6, camLabel: "FLUID PAIR: CYNICISM", shake: 0.4, foleyCue: "drone_swell" },
+                    { id: 4, phase: "NARRATIVE_ARC", speaker: "A", dialogue: "It started like any other morning. But sitting right on the table was the letter.", statusA: 6.0, statusB: 6.0, tension: 0.55, targetA: 0.42, targetB: 0.68, gestureA: "GESTURE_EXPLAIN", gestureB: "LISTENING_ATTENTIVE", camZoom: 1.4, camLabel: "NARRATIVE PLATFORM", shake: 0.1, foleyCue: "clock_tick" },
+                    { id: 5, phase: "NARRATIVE_ARC", speaker: "B", dialogue: "And you looked me in the eye and acted as if it didn't alter every single promise we made!", statusA: 4.5, statusB: 9.0, tension: 0.86, targetA: 0.46, targetB: 0.62, gestureA: "FLINCH_SURPRISE", gestureB: "ACCUSATORY_POINT", camZoom: 1.8, camLabel: "THE THEATRICAL TILT", shake: 0.6, foleyCue: "dramatic_hit" },
+                    { id: 6, phase: "NARRATIVE_ARC", speaker: "A", dialogue: "Because I was terrified! Don't you see? It wasn't about winning—it was about surviving the moment!", statusA: 9.8, statusB: 6.2, tension: 0.98, targetA: 0.52, targetB: 0.60, gestureA: "ROAR_VULNERABLE", gestureB: "STEP_BACK_AWE", camZoom: 2.05, camLabel: "CLIMACTIC CRUCIBLE", shake: 0.85, foleyCue: "cymbal_swell" },
+                    { id: 7, phase: "NARRATIVE_ARC", speaker: "B", dialogue: "I hear it now. Underneath all the armor... you just wanted to know you weren't standing alone in the storm.", statusA: 8.0, statusB: 8.0, tension: 0.60, targetA: 0.48, targetB: 0.58, gestureA: "LOWER_GUARD", gestureB: "OPEN_PALM_RELEASE", camZoom: 1.65, camLabel: "TRANSFORMATIVE RECOGNITION", shake: 0.2, foleyCue: "drone_harmonic" },
+                    { id: 8, phase: "CLOSING_TABLOID", speaker: "CHORUS", dialogue: "[TABLOID FREEZE] To our Teller: The cold blade of severed trust has been met with compassion. Your story has been honored.", statusA: 10.0, statusB: 10.0, tension: 0.30, targetA: 0.45, targetB: 0.55, gestureA: "FREEZE_TABLOID", gestureB: "FREEZE_TABLOID", camZoom: 1.35, camLabel: "CLOSING TABLOID RITUAL", shake: 0.0, foleyCue: "bell_resonance" }
+                ]
             }
         };
 
@@ -1130,6 +1294,30 @@
                 } else if (this.currentGesture === "LEAN_INTO_FACE") {
                     rHandX = rShoulderX + (this.facing * 42); rHandY = shoulderY + 15;
                     lHandX = lShoulderX - 10; lHandY = shoulderY + 30;
+                } else if (this.currentGesture === "PLEADING_REACH") {
+                    rHandX = rShoulderX + (this.facing * 52); rHandY = shoulderY - 8;
+                    lHandX = lShoulderX + (this.facing * 35); lHandY = shoulderY - 2;
+                } else if (this.currentGesture === "DEFENSIVE_FOLD" || this.currentGesture === "COLD_BARRIER") {
+                    rHandX = lShoulderX + (this.facing * 5); rHandY = shoulderY + 24;
+                    lHandX = rShoulderX - (this.facing * 5); lHandY = shoulderY + 24;
+                } else if (this.currentGesture === "HESITATE_STEP") {
+                    rHandX = rShoulderX + (this.facing * 18); rHandY = shoulderY + 18;
+                    lHandX = lShoulderX + (this.facing * 8); rHandY = shoulderY + 22;
+                } else if (this.currentGesture === "GESTURE_EXPLAIN" || this.currentGesture === "OPEN_PALM_RELEASE") {
+                    rHandX = rShoulderX + (this.facing * 40); rHandY = shoulderY + 18;
+                    lHandX = lShoulderX - 20; lHandY = shoulderY + 25;
+                } else if (this.currentGesture === "ACCUSATORY_POINT") {
+                    rHandX = rShoulderX + (this.facing * 58); rHandY = shoulderY + 8;
+                    lHandX = lShoulderX - 15; lHandY = shoulderY + 35;
+                } else if (this.currentGesture === "ROAR_VULNERABLE") {
+                    lHandX = lShoulderX - 32; lHandY = shoulderY - 30;
+                    rHandX = rShoulderX + (this.facing * 42); rHandY = shoulderY - 30;
+                } else if (this.currentGesture === "FREEZE_TABLOID") {
+                    rHandX = rShoulderX + (this.facing * 46); rHandY = shoulderY - 18;
+                    lHandX = lShoulderX - 22; lHandY = shoulderY + 32;
+                } else if (this.currentGesture === "STAND_STILL") {
+                    rHandX = rShoulderX + (this.facing * 10); rHandY = shoulderY + 44;
+                    lHandX = lShoulderX - 10; lHandY = shoulderY + 44;
                 }
 
                 // Left Arm
@@ -1318,9 +1506,26 @@
             document.getElementById('beat-badge').textContent = `BEAT: ${index + 1} / ${sp.beats.length}`;
             document.getElementById('tension-badge').textContent = `TENSION: ${dramaticTension.toFixed(2)}`;
 
+            // Ritual Phase Badge
+            const phaseBadge = document.getElementById('playback-phase-badge');
+            if (beat.phase) {
+                phaseBadge.style.display = 'inline-block';
+                phaseBadge.textContent = `PHASE: ${beat.phase.replace(/_/g, ' ')}`;
+            } else {
+                phaseBadge.style.display = 'none';
+            }
+
             // Subtitles
-            const speakerName = beat.speaker === "A" ? sp.charA.name : sp.charB.name;
-            const speakerColor = beat.speaker === "A" ? sp.charA.color : sp.charB.color;
+            let speakerName = beat.speaker === "A" ? sp.charA.name : sp.charB.name;
+            let speakerColor = beat.speaker === "A" ? sp.charA.color : sp.charB.color;
+            if (beat.speaker === "CONDUCTOR") {
+                speakerName = "THE CONDUCTOR (FACILITATOR)";
+                speakerColor = "#c084fc";
+            } else if (beat.speaker === "CHORUS") {
+                speakerName = "THE ENSEMBLE (TABLOID FREEZE)";
+                speakerColor = "#f472b6";
+            }
+
             document.getElementById('subtitle-speaker').textContent = speakerName;
             document.getElementById('subtitle-speaker').style.color = speakerColor;
             document.getElementById('subtitle-text').textContent = `"${beat.dialogue}"`;
@@ -1330,13 +1535,19 @@
             charB.status = beat.statusB;
             charA.targetX = window.innerWidth * beat.targetA;
             charB.targetX = window.innerWidth * beat.targetB;
-            charA.isSpeaking = (beat.speaker === "A");
-            charB.isSpeaking = (beat.speaker === "B");
+            charA.isSpeaking = (beat.speaker === "A" || beat.speaker === "CONDUCTOR" || beat.speaker === "CHORUS");
+            charB.isSpeaking = (beat.speaker === "B" || beat.speaker === "CHORUS");
             charA.currentGesture = beat.gestureA || "NEUTRAL";
             charB.currentGesture = beat.gestureB || "NEUTRAL";
 
             // Procedural Audio & Foley Synthesis Triggers
-            if (beat.gestureA === "SLAM_TABLE" || beat.gestureA === "SHATTER_LAPTOP") {
+            if (beat.foleyCue === "bell_resonance" || beat.foleyCue === "drone_chime") {
+                foley.playGavelStrike();
+            } else if (beat.foleyCue === "dramatic_hit" || beat.foleyCue === "cymbal_swell") {
+                foley.playCymbalHit();
+            } else if (beat.foleyCue === "heartbeat_slow") {
+                foley.playSlap();
+            } else if (beat.gestureA === "SLAM_TABLE" || beat.gestureA === "SHATTER_LAPTOP") {
                 foley.playTableSlam();
             } else if (beat.dialogue.includes("Honor") || beat.dialogue.includes("Court")) {
                 foley.playGavelStrike();
@@ -1973,6 +2184,130 @@
                 const word = chip.getAttribute('data-word');
                 triggerLiveImprov(word, improvIntensity.value);
             });
+        });
+
+        // ---------------------------------------------------------------------
+        // JONATHAN FOX PLAYBACK THEATRE RITUAL CONTROLLER
+        // ---------------------------------------------------------------------
+        const playbackModal = document.getElementById('playback-ritual-modal');
+        const btnPlaybackModal = document.getElementById('btn-playback-modal');
+        const btnPlaybackClose = document.getElementById('playback-modal-close');
+        const btnInitiatePlayback = document.getElementById('btn-initiate-playback');
+        const tellerInput = document.getElementById('teller-offering-input');
+        const playbackFeedback = document.getElementById('playback-ritual-feedback');
+
+        btnPlaybackModal.addEventListener('click', () => {
+            foley.init();
+            playbackModal.style.display = playbackModal.style.display === 'none' ? 'block' : 'none';
+        });
+
+        btnPlaybackClose.addEventListener('click', () => {
+            playbackModal.style.display = 'none';
+        });
+
+        document.querySelectorAll('.playback-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                tellerInput.value = chip.getAttribute('data-offering');
+            });
+        });
+
+        btnInitiatePlayback.addEventListener('click', async () => {
+            foley.init();
+            const prompt = tellerInput.value.trim() || "The day everything shifted";
+            playbackFeedback.textContent = "Applied AI: Distilling emotional polarity & ritual phases...";
+            showDirectorToast(`🎭 Initiating Playback Ritual: "${prompt.slice(0, 24)}..."`);
+
+            try {
+                const res = await fetch('/api/playback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teller_prompt: prompt, starting_beat_id: 1 })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.playback_beats && data.playback_beats.length > 0) {
+                        SCREENPLAYS.playback_theatre.beats = data.playback_beats;
+                        playbackFeedback.textContent = `Ritual ready: 4 phases (${data.playback_beats.length} beats) crystallized.`;
+                    }
+                }
+            } catch (err) {
+                console.warn("Using baseline Playback Theatre script:", err);
+            }
+
+            setTimeout(() => {
+                playbackModal.style.display = 'none';
+                document.getElementById('scene-select').value = "playback_theatre";
+                loadScreenplay("playback_theatre");
+            }, 600);
+        });
+
+        // ---------------------------------------------------------------------
+        // OPENTELEMETRY OBSERVABILITY HUD & DRAWER CONTROLLER
+        // ---------------------------------------------------------------------
+        const otelDrawer = document.getElementById('otel-drawer');
+        const btnOtelDrawer = document.getElementById('btn-otel-drawer');
+        const btnOtelClose = document.getElementById('otel-drawer-close');
+        const btnOtelRefresh = document.getElementById('btn-refresh-otel');
+
+        async function refreshOtelTelemetry() {
+            try {
+                // 1. Fetch metrics
+                const metricsRes = await fetch('/api/metrics');
+                if (metricsRes.ok) {
+                    const mData = await metricsRes.json();
+                    if (mData.stats) {
+                        document.getElementById('otel-stat-records').textContent = `${(mData.stats.log_count || 0) + (mData.stats.metric_count || 0) + (mData.stats.span_count || 0)}`;
+                        document.getElementById('otel-stat-disk').textContent = `${mData.stats.total_disk_mb || 0} MB`;
+                        document.getElementById('otel-stat-engine').textContent = mData.stats.compression_engine || 'zstd+msgpack';
+                    }
+                }
+
+                // 2. Fetch logs
+                const logsRes = await fetch('/api/logs?limit=25');
+                if (logsRes.ok) {
+                    const lData = await logsRes.json();
+                    const container = document.getElementById('otel-logs-container');
+                    if (lData.logs && lData.logs.length > 0) {
+                        container.innerHTML = lData.logs.map(log => {
+                            const payloadStr = JSON.stringify(log.payload || {});
+                            return `
+                                <div class="log-entry level-${log.level}">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                                        <span style="font-weight:700; color:${log.level === 'ERROR' ? '#ef4444' : '#38bdf8'}">[${log.level}] ${log.event}</span>
+                                        <span style="color:#94a3b8; font-size:10px;">${log.duration_ms.toFixed(1)}ms</span>
+                                    </div>
+                                    <div style="color:#64748b; font-size:10px; margin-bottom:3px;">
+                                        ${log.service} • ${log.function} • trace:${(log.trace_id || '').slice(0, 8)}...
+                                    </div>
+                                    <div style="color:#cbd5e1; font-size:10.5px; word-break:break-all;">
+                                        ${payloadStr.length > 120 ? payloadStr.slice(0, 120) + '...' : payloadStr}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        container.innerHTML = '<div style="color:#64748b; font-size:11px;">No telemetry records found.</div>';
+                    }
+                }
+            } catch (err) {
+                console.warn("Failed to load telemetry:", err);
+            }
+        }
+
+        btnOtelDrawer.addEventListener('click', () => {
+            otelDrawer.classList.toggle('open');
+            if (otelDrawer.classList.contains('open')) {
+                refreshOtelTelemetry();
+            }
+        });
+
+        btnOtelClose.addEventListener('click', () => {
+            otelDrawer.classList.remove('open');
+        });
+
+        btnOtelRefresh.addEventListener('click', () => {
+            refreshOtelTelemetry();
         });
 
         // Initialize with Quentin Tarantino's Pulp Fiction (Ezekiel 25:17)

@@ -21,3 +21,7 @@ python-osc>=1.8.3
 
 # Stream Ingestion & Utility
 requests>=2.31.0
+
+# Telemetry Observability & Zero-Deletion Compression
+zstandard>=0.22.0
+msgpack>=1.0.7

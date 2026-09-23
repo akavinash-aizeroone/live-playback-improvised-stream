@@ -34,3 +34,4 @@ wheels/
 
 # Dynamic runtime files
 browser_render/active_port.txt
+telemetry_archive.sqlite3*
