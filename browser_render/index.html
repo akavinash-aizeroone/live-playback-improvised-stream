@@ -573,24 +573,29 @@
         <!-- Live Applied AI Story Improvisation Director Bar -->
         <div id="improv-director-bar">
             <div class="improv-header">
-                <span class="improv-title">⚡ LIVE STORY IMPROVISATION DIRECTOR (APPLIED AI)</span>
+                <span class="improv-title">⚡ LIVE STORY IMPROVISATION DIRECTOR (APPLIED AI • MISTRAL 3-KEY ROTATION)</span>
                 <div class="improv-chips">
                     <span class="chip" data-word="poisoned coffee">☕ Poisoned Coffee</span>
                     <span class="chip" data-word="stolen diamond">💍 Stolen Diamond</span>
                     <span class="chip" data-word="I am your brother">🩸 Secret Brother</span>
-                    <span class="chip" data-word="alien transmission">👽 Alien Secret</span>
-                    <span class="chip" data-word="FBI wiretap">🚨 FBI Wiretap</span>
-                    <span class="chip" data-word="armed detonator">💣 Detonator</span>
+                    <span class="chip" data-word="classified radar logs">📡 Classified Radar Logs</span>
+                    <span class="chip" data-word="diluted stock agreement">📄 Diluted Stock</span>
+                    <span class="chip" data-word="gold pocket watch">⏱️ Gold Pocket Watch</span>
                 </div>
             </div>
             <div class="improv-input-row">
-                <input type="text" id="improv-word-input" placeholder="Type words, secrets, or plot twists to improvise the story in real-time (e.g. 'poisoned coffee', 'I am your brother')..." autocomplete="off" />
-                <select id="improv-intensity">
-                    <option value="tilt" selected>💥 Narrative Tilt (Dramatic Twist)</option>
-                    <option value="subtle">🤝 "Yes, and..." (Subtle Weave)</option>
-                    <option value="chaos">🔥 Full Disruption (Chaos Climax)</option>
+                <input type="text" id="improv-word-input" placeholder="Type words, secrets, or plot twists to improvise the story in real-time (e.g. 'poisoned coffee', 'classified radar logs')..." autocomplete="off" />
+                <select id="improv-technique" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; padding:7px 10px; border-radius:8px; font-size:12px; outline:none; font-weight:600;">
+                    <option value="JOHNSTONE_STATUS_TILT" selected>🎭 Johnstone: Status Tilt</option>
+                    <option value="BOAL_FORUM_INTERVENTION">✊ Boal: Forum Intervention</option>
+                    <option value="FOX_PLAYBACK_RITUAL">🕯️ Fox: Playback Ritual</option>
+                    <option value="MCKEE_VALUE_SHIFT">🎬 McKee: Story Value Shift</option>
                 </select>
-                <button id="btn-improvise-send" class="btn-improv">🚀 IMPROVISE NOW</button>
+                <button id="btn-improvise-send" class="btn-improv">🚀 IMPROVISE WITH MISTRAL</button>
+            </div>
+            <div id="mistral-status-row" style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#94a3b8; padding-top:2px;">
+                <span id="mistral-key-badge" style="color:#38bdf8; font-weight:600;">⚡ Model: open-mistral-7b • 3-Key Rotating Pool</span>
+                <span id="theatrical-analysis-badge" style="color:#a7f3d0; font-style:italic;">Awaiting prompt...</span>
             </div>
         </div>
 
@@ -2116,13 +2121,18 @@
             }
         }
 
-        async function triggerLiveImprov(word, intensity = "tilt") {
+        async function triggerLiveImprov(word, technique = null) {
             foley.init();
             if (!word || !word.trim()) return;
             const cleanWord = word.trim();
             const sp = SCREENPLAYS[currentScreenplayKey];
+            const tech = technique || (document.getElementById('improv-technique') ? document.getElementById('improv-technique').value : "JOHNSTONE_STATUS_TILT");
 
-            showDirectorToast(`🎭 Improvising Story with: "${cleanWord}"...`);
+            const mistralKeyBadge = document.getElementById('mistral-key-badge');
+            const theatricalAnalysisBadge = document.getElementById('theatrical-analysis-badge');
+            if (theatricalAnalysisBadge) theatricalAnalysisBadge.textContent = "Synthesizing with Mistral AI...";
+
+            showDirectorToast(`🎭 Improvising (${tech.split('_')[0]}): "${cleanWord}"...`);
 
             let newBeats = null;
             try {
@@ -2132,7 +2142,7 @@
                     body: JSON.stringify({
                         scene: currentScreenplayKey,
                         prompt_words: cleanWord,
-                        intensity: intensity,
+                        technique: tech,
                         current_beat_id: currentBeatIndex + 1
                     })
                 });
@@ -2140,6 +2150,13 @@
                     const data = await res.json();
                     if (data.improvised_beats && data.improvised_beats.length > 0) {
                         newBeats = data.improvised_beats;
+                        if (mistralKeyBadge) {
+                            mistralKeyBadge.textContent = `⚡ Key: ${data.key_used || 'rotating'} • ${data.duration_ms || 0}ms`;
+                        }
+                        if (theatricalAnalysisBadge) {
+                            theatricalAnalysisBadge.textContent = `🎭 ${data.technique || tech} [${data.value_shift || '+ to -'}]: ${data.dramaturgical_analysis || 'Diegetic Offer'}`;
+                        }
+                        showDirectorToast(`✨ ${data.key_used || 'Mistral'} [${data.duration_ms}ms]: ${data.technique || tech}`);
                     }
                 }
             } catch (e) {
@@ -2159,12 +2176,12 @@
 
         const improvInput = document.getElementById('improv-word-input');
         const btnImprovSend = document.getElementById('btn-improvise-send');
-        const improvIntensity = document.getElementById('improv-intensity');
+        const improvTechniqueSelect = document.getElementById('improv-technique');
 
         btnImprovSend.addEventListener('click', () => {
             const val = improvInput.value;
             if (val) {
-                triggerLiveImprov(val, improvIntensity.value);
+                triggerLiveImprov(val, improvTechniqueSelect ? improvTechniqueSelect.value : null);
                 improvInput.value = '';
             }
         });
@@ -2173,7 +2190,7 @@
             if (e.key === 'Enter') {
                 const val = improvInput.value;
                 if (val) {
-                    triggerLiveImprov(val, improvIntensity.value);
+                    triggerLiveImprov(val, improvTechniqueSelect ? improvTechniqueSelect.value : null);
                     improvInput.value = '';
                 }
             }
@@ -2182,7 +2199,7 @@
         document.querySelectorAll('.chip').forEach(chip => {
             chip.addEventListener('click', () => {
                 const word = chip.getAttribute('data-word');
-                triggerLiveImprov(word, improvIntensity.value);
+                triggerLiveImprov(word, improvTechniqueSelect ? improvTechniqueSelect.value : null);
             });
         });
 

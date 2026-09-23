@@ -22,6 +22,7 @@ if PROJECT_ROOT not in sys.path:
 from pipeline import AutonomousImprovStreamOrchestrator
 from dramaturgy.playback_theatre import JonathanFoxPlaybackEngine
 from observability import LOGGER, LogLevel, logged, trace_span, TelemetryStorageEngine
+from storytelling import THEATRICAL_ENGINE, TheatricalTechnique, MISTRAL_CLIENT
 
 class TelemetryEngine:
     def __init__(self):
@@ -361,27 +362,36 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
                 data = {}
             prompt_words = str(data.get("prompt_words") or data.get("word") or "").strip()
             scene_key = str(data.get("scene") or data.get("screenplay_id") or "pulp_fiction")
-            intensity = str(data.get("intensity", "tilt"))
+            tech_str = str(data.get("technique") or "JOHNSTONE_STATUS_TILT").upper()
+            try:
+                technique = TheatricalTechnique(tech_str)
+            except ValueError:
+                technique = TheatricalTechnique.JOHNSTONE_STATUS_TILT
+
             current_beat_id = int(data.get("current_beat_id", 1))
 
             start_t = time.perf_counter()
-            with trace_span("api_improvise_generate", service="server-api", attributes={"scene": scene_key, "words": prompt_words}):
-                new_beats = AppliedAIImprovGenerator.generate(
+            with trace_span("api_improvise_generate", service="server-api", attributes={"scene": scene_key, "technique": technique.value, "words": prompt_words}):
+                gen_result = THEATRICAL_ENGINE.generate(
                     scene_key=scene_key,
                     user_word=prompt_words,
-                    intensity=intensity,
+                    technique=technique,
                     current_beat_id=current_beat_id
                 )
                 duration_ms = (time.perf_counter() - start_t) * 1000.0
 
-            LOGGER.increment("api.improvise.requests", labels={"scene": scene_key})
+            LOGGER.increment("api.improvise.requests", labels={"scene": scene_key, "technique": technique.value})
             LOGGER.timing("api.improvise.latency_ms", duration_ms)
 
             response = {
                 "success": True,
                 "prompt_words": prompt_words,
                 "scene": scene_key,
-                "improvised_beats": new_beats,
+                "technique": gen_result.get("technique", technique.value),
+                "value_shift": gen_result.get("value_shift", "+ to -"),
+                "dramaturgical_analysis": gen_result.get("dramaturgical_analysis", ""),
+                "key_used": gen_result.get("key_used", "unknown"),
+                "improvised_beats": gen_result.get("improvised_beats", []),
                 "duration_ms": round(duration_ms, 2)
             }
 
@@ -390,6 +400,23 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             self.wfile.write(json.dumps(response).encode("utf-8"))
+            return
+
+        elif self.path == "/api/story/playback":
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length).decode("utf-8") if content_length > 0 else "{}"
+            try:
+                data = json.loads(body)
+            except Exception:
+                data = {}
+            offering = str(data.get("offering", "")).strip()
+            engine = JonathanFoxPlaybackEngine()
+            result = engine.process_offering(offering)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(result).encode("utf-8"))
             return
 
         self.send_response(404)
@@ -437,6 +464,51 @@ class LinePuppetryHTTPHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Origin", "*")
             self.end_headers()
             self.wfile.write(json.dumps(res).encode("utf-8"))
+            return
+
+        elif clean_path == "/api/story/keys":
+            status = MISTRAL_CLIENT.pool.get_status()
+            res = {
+                "success": True,
+                "default_model": MISTRAL_CLIENT.default_model,
+                "total_keys": len(status),
+                "keys": status
+            }
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(res).encode("utf-8"))
+            return
+
+        elif clean_path == "/api/story/techniques":
+            techniques = [
+                {
+                    "id": "JOHNSTONE_STATUS_TILT",
+                    "name": "Keith Johnstone: Improv Status Tilt",
+                    "description": "Explosive status seesaw shift and narrative tilt without breaking character."
+                },
+                {
+                    "id": "BOAL_FORUM_INTERVENTION",
+                    "name": "Augusto Boal: Forum Intervention",
+                    "description": "Spect-actor intervention testing tactical leverage against an oppressor."
+                },
+                {
+                    "id": "FOX_PLAYBACK_RITUAL",
+                    "name": "Jonathan Fox: Playback Ritual",
+                    "description": "Emotional polarity embodiment (Pairs) culminating in a frozen tableau."
+                },
+                {
+                    "id": "MCKEE_VALUE_SHIFT",
+                    "name": "Robert McKee: Story Value Shift",
+                    "description": "Classical screenwriting beat progression with positive/negative valence transitions."
+                }
+            ]
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": True, "techniques": techniques}).encode("utf-8"))
             return
 
         elif clean_path == "/api/metrics":
